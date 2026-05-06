@@ -7,6 +7,7 @@ import {
   BarChart, Bar, XAxis, YAxis, Tooltip,
   ResponsiveContainer, ComposedChart, Area, CartesianGrid, Legend, PieChart, Pie, Cell
 } from "recharts";
+import { CSSProperties } from "react";
 
 // --- Sub-Komponen StatCard ---
 const StatCard = ({ title, value, color = "#111" }: { title: string, value: string, color?: string }) => (
@@ -825,19 +826,20 @@ const handlePrint = () => {
       };
 
       // 🔹 ALIGNMENT
-      const tdRight = {
-        ...tdStyle,
+      const tdRight: CSSProperties = {
         textAlign: "right",
-        fontVariantNumeric: "tabular-nums",
+        padding: "4px 6px",
+        border: "1px solid #e5e7eb",
+        fontSize: "11px"
       };
 
-      const tdCenter = {
+      const tdCenter: CSSProperties = {
         ...tdStyle,
         textAlign: "center",
       };
 
       // 🔹 INDENT HELPER (fix error paddingLeft)
-      const tdIndent = (left) => ({
+      const tdIndent = (left: number) => ({
         ...tdStyle,
         padding: `4px 6px 4px ${left}px`,
       });
