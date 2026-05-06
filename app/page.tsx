@@ -840,9 +840,9 @@ const handlePrint = () => {
 
       // 🔹 INDENT HELPER (fix error paddingLeft)
       const tdIndent = (left: number) => ({
-        ...tdStyle,
-        padding: `4px 6px 4px ${left}px`,
-      });
+      ...tdStyle,
+      padding: `4px 6px 4px ${left}px`,
+    });
 
       return (
         <table
