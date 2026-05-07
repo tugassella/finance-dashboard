@@ -15,6 +15,9 @@ const geistMono = Geist_Mono({
 export const metadata = {
   title: "GENTA - Finance Dashboard",
   description: "Great Edunesia Finance Administration Dashboard",
+  icons: {
+    icon: "/Main Logo Title Great Edunesia.png", // atau "/favicon.ico"
+  },
 };
 
 export default function RootLayout({
