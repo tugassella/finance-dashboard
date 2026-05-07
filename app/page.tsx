@@ -78,12 +78,12 @@ export default function ExecutiveDashboard() {
     fetch("/api/sheets")
       .then(res => res.json())
       .then(res => {
-        setData(res || []);
+        setData(Array.isArray(res) ? res : res?.data ?? []);
         setLoading(false);
       })
       .catch(() => setLoading(false));
   }, []);
-
+  const safeData = Array.isArray(data) ? data : [];
   const [printKey, setPrintKey] = useState(0);
 
   useEffect(() => {
@@ -128,9 +128,9 @@ export default function ExecutiveDashboard() {
     </div>
   );
 
-  const listTahun = [...new Set(data.map(d => String(d.Tahun)))].filter(Boolean).sort();
-  const listBulan = [...new Set(data.map(d => String(d.Bulan)))].filter(Boolean).sort((a,b) => Number(a)-Number(b));
-  const listJenisDana = [...new Set(data.map(d => String(d["Jenis Dana"])))].filter(Boolean);
+  const listTahun = [...new Set(safeData.map(d => String(d.Tahun)))].filter(Boolean).sort();
+  const listBulan = [...new Set(safeData.map(d => String(d.Bulan)))].filter(Boolean).sort((a,b) => Number(a)-Number(b));
+  const listJenisDana = [...new Set(safeData.map(d => String(d["Jenis Dana"])))].filter(Boolean);
   
   // ==============================
 // FILTER SECTION
