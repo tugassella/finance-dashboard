@@ -369,11 +369,11 @@ const totalSerapan =
   color: "#334155",
   padding: "10px 8px",
   fontSize: "11px",
-  fontWeight: 700,
+  fontWeight: 600,
   textTransform: "uppercase",
-  letterSpacing: "0.6px",
-  borderBottom: "2px solid #e2e8f0",
-  textAlign: "right",
+  letterSpacing: "0.4px",
+  borderBottom: "1px solid #e2e8f0",
+  textAlign: "center",
   position: "sticky",
   top: 0,
   zIndex: 5
@@ -1000,10 +1000,10 @@ const tableStyle: CSSProperties = {
                           transition: "0.2s"
                         }}
                         onMouseEnter={(e) => {
-                          e.currentTarget.style.background = "#e0f2fe";
+                          e.currentTarget.style.background = "#f1f5f9";
                         }}
                         onMouseLeave={(e) => {
-                          e.currentTarget.style.background = "#fafafa";
+                          e.currentTarget.style.background = "#transparent";
                         }}>
                         <td style={{ padding: "6px" }}>{isOpen ? "▼" : "▶"} {div}</td>
                         <td style={{ textAlign: "right" }}>{format(d.a)}</td>
@@ -1025,10 +1025,10 @@ const tableStyle: CSSProperties = {
                              transition: "0.2s"
                             }}
                             onMouseEnter={(e) => {
-                             e.currentTarget.style.background = "#e0f2fe"; // beda dikit biar hierarki keliatan
+                             e.currentTarget.style.background = "#f1f5f9"; // beda dikit biar hierarki keliatan
                             }}
                             onMouseLeave={(e) => {
-                             e.currentTarget.style.background = "#fafafa";
+                             e.currentTarget.style.background = "#transparent";
                             }}
                           >
                             <td style={{ paddingLeft: "25px" }}>↳ {org}</td>
@@ -1109,10 +1109,10 @@ const tableStyle: CSSProperties = {
                   cursor: "pointer"
                 }}
                 onMouseEnter={(e) => {
-                  e.currentTarget.style.background = "#e2e8f0";
+                  e.currentTarget.style.background = "#f1f5f9";
                 }}
                 onMouseLeave={(e) => {
-                  e.currentTarget.style.background = "#f1f5f9";
+                  e.currentTarget.style.background = "#transparent";
                 }}
               >
                 <td style={{ ...tdStyle, ...stickyLeft(0, "#f1f5f9") }}>
@@ -1139,10 +1139,10 @@ const tableStyle: CSSProperties = {
                       <tr
                         style={{ background: "#ffffff", fontWeight: 500, color: "#334155", cursor: "default" }}
                         onMouseEnter={(e) => {
-                          e.currentTarget.style.background = "#f8fafc";
+                          e.currentTarget.style.background = "#f1f5f9";
                         }}
                         onMouseLeave={(e) => {
-                          e.currentTarget.style.background = "#ffffff";
+                          e.currentTarget.style.background = "#transparent";
                         }}
                       >
                         <td style={{ ...tdStyle, paddingLeft: "20px" }}>
@@ -1177,8 +1177,8 @@ const tableStyle: CSSProperties = {
                               fontWeight: 500
                             }}
                             onMouseEnter={(e) => (e.currentTarget.style.background = "#f1f5f9")}
-                            onMouseLeave={(e) => (e.currentTarget.style.background = "#fcfcfd")}
-                          >
+                            onMouseLeave={(e) => (e.currentTarget.style.background = "#transparent")}>
+                          
                             <td style={{ ...tdStyle, paddingLeft: "40px" }}>
                               {expandedSub[sub] ? "▼" : "▶"} {sub}
                             </td>
@@ -1201,10 +1201,10 @@ const tableStyle: CSSProperties = {
                                       background: "#ffffff", fontWeight: 400, color: "#64748b", cursor: "default"
                                     }}
                                     onMouseEnter={(e) =>
-                                      (e.currentTarget.style.background = "#fefce8")
+                                      (e.currentTarget.style.background = "#f1f5f9")
                                     }
                                     onMouseLeave={(e) =>
-                                      (e.currentTarget.style.background = "#ffffff")
+                                      (e.currentTarget.style.background = "#transparent")
                                     }
                                   >
                                     <td style={{ ...tdStyle, paddingLeft: "60px", color: "#64748b" }}>
@@ -1237,7 +1237,7 @@ const tableStyle: CSSProperties = {
             borderTop: "2px solid #334155"
           }}
         >
-          <td style={{ ...tdStyle, fontWeight: 800 }}>
+          <td style={{ ...tdStyle, fontWeight: 600 }}>
             GRAND TOTAL
           </td>
 
