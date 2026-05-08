@@ -374,6 +374,9 @@ const totalSerapan =
   letterSpacing: "0.5px",
   border: "1px solid #e2e8f0",
   textAlign: "right",
+  position: "sticky",
+  top: 0,
+  zIndex: 5
 };
 
 const tdStyle: CSSProperties = {
@@ -396,6 +399,14 @@ const tdIndent = (left: number): CSSProperties => ({
   ...tdStyle,
   padding: `4px 6px 4px ${left}px`,
 });
+
+const firstColStyle: CSSProperties = {
+  position: "sticky",
+  left: 0,
+  background: "#fff",
+  zIndex: 4,
+  borderRight: "1px solid #e2e8f0"
+};
 
 const rowHover = (base: string, hover: string) => ({
   style: {
@@ -538,10 +549,9 @@ const handlePrint = () => {
         }
 
         .table-wrapper {
-          width: 100%;
-          overflow-x: auto;
-          -webkit-overflow-scrolling: touch;
-        }
+        overflow: auto;
+        -webkit-overflow-scrolling: touch;
+      }
 
         .table-wrapper table {
           min-width: 1100px;
@@ -592,6 +602,27 @@ const handlePrint = () => {
             overflow-x: auto;
             -webkit-overflow-scrolling: touch;
           }
+            .chart-box {
+            background: #fff;
+            transition: all 0.2s ease;
+          }
+            display: grid;
+            grid-template-columns: 2fr 1fr;
+            
+            @media (max-width: 768px) {
+              grid-template-columns: 1fr;
+            }
+          
+          .kpi-scroll {
+            overflow-x: auto;
+            -webkit-overflow-scrolling: touch;
+            scrollbar-width: none; /* Firefox */
+          }
+
+          .kpi-scroll::-webkit-scrollbar {
+            display: none; /* Chrome */
+          }
+
       `}</style>
       
       {showUMModal && (
@@ -682,8 +713,22 @@ const handlePrint = () => {
               </div>
             )}
 
-            <div className="kpi-scroll">
-              <div style={{ display: "flex", gap: "10px", minWidth: "900px" }}>
+            <div
+                className="kpi-scroll"
+                style={{
+                  overflowX: "auto",
+                  WebkitOverflowScrolling: "touch",
+                  paddingBottom: "8px"
+                }}
+              >
+                <div
+                  style={{
+                    display: "flex",
+                    gap: "10px",
+                    minWidth: "max-content",
+                    paddingRight: "10px"
+                  }}
+                >
               <StatCard title="Anggaran" value={format(grandTotal.a)} color="#0284c7" />
               <StatCard title="UM" value={format(grandTotal.um)} color="#0284c7" />
               <StatCard title="Beban" value={format(grandTotal.b)} color="#0284c7" />
@@ -693,8 +738,22 @@ const handlePrint = () => {
               </div>
             </div> 
 
-            <div className="kpi-scroll">
-              <div style={{ display: "flex", gap: "10px", minWidth: "900px" }}>
+            <div
+              className="kpi-scroll"
+              style={{
+                overflowX: "auto",
+                WebkitOverflowScrolling: "touch",
+                paddingBottom: "8px"
+              }}
+            >
+              <div
+                style={{
+                  display: "flex",
+                  gap: "10px",
+                  minWidth: "max-content",
+                  paddingRight: "10px"
+                }}
+              >
               <StatCard title="Anggaran Tahunan" value={format(totalAnggaranTahunan)} />
               <StatCard title={`Transaksi YTD (s.d Bln ${maxBulan})`} value={format(totalTransaksiTahunan)} />
               <StatCard title="Saldo YTD" value={format(totalSaldoTahunan)} color={totalSaldoTahunan < 0 ? "#dc2626" : "#111"} />
@@ -703,51 +762,85 @@ const handlePrint = () => {
             </div>
 
             <div className="charts-scroll">
-              <div style={{ display: "flex", gap: "15px", minWidth: "900px" }}>
-               <div
-                  className="chart-box"
-                  style={{
-                    flex: "0 0 500px",
-                    border: "1px solid #e2e8f0",
-                    borderRadius: "8px",
-                    padding: "10px"
-                  }}
-                >
-                <h4 style={{ fontSize: "11px", textAlign: "center", marginBottom: "10px" }}>Serapan per Divisi</h4>
-                <div style={{ width: "100%", height: "300px" }}>
-                <ResponsiveContainer key={printKey} width="100%" height="100%">
-                    <BarChart data={Object.entries(tree).map(([name, d]: any) => ({ name, a: d.a, t: d.t }))} margin={{ top: 5, right: 20, left: 25, bottom: 45 }}>
-                      <XAxis dataKey="name" tick={{ fontSize: 8 }} interval={0} angle={0} textAnchor="middle" />
-                      <YAxis tick={{ fontSize: 8 }} tickFormatter={(v) => `${v/1000000}M`} />
-                      <Tooltip formatter={(v:any) => format(v)} />
-                      <Legend wrapperStyle={{ fontSize: "9px" }} />
-                      <Bar name="Budget" dataKey="a" fill="#006837" isAnimationActive={false} />
-                      <Bar name="Real" dataKey="t" fill="#f59e0b" isAnimationActive={false} />
-                    </BarChart>
-                  </ResponsiveContainer>
-                </div>
-              </div>
-              </div>
+              <div
+                style={{
+                  display: "flex",
+                  gap: "15px",
+                  width: "100%",
+                  flexWrap: "wrap"
+                }}
+              >
 
-               <div
+                {/* BAR CHART */}
+                <div
                   className="chart-box"
                   style={{
-                    flex: "0 0 300px",
+                    flex: 2,
+                    minWidth: "320px",
                     border: "1px solid #e2e8f0",
                     borderRadius: "8px",
                     padding: "10px"
                   }}
                 >
-                <h4 style={{ fontSize: "11px", textAlign: "center", marginBottom: "10px" }}>Prog vs Ops</h4>
-                <div style={{ width: "100%", height: "300px" }}>
-                  <ResponsiveContainer key={printKey} width="100%" height="100%">
-                    <PieChart>
-                      <Pie data={pieData} dataKey="value" cx="50%" cy="50%" innerRadius={40} outerRadius={60} isAnimationActive={false} label={(entry: any) => `${(entry.percent * 100).toFixed(0)}%`}>
-                        <Cell fill="#006837" /><Cell fill="#f59e0b" />
-                      </Pie>
-                      <Legend wrapperStyle={{ fontSize: "9px" }} />
-                    </PieChart>
-                  </ResponsiveContainer>
+                  <h4 style={{ fontSize: "11px", textAlign: "center", marginBottom: "10px" }}>
+                    Serapan per Divisi
+                  </h4>
+
+                  <div style={{ width: "100%", height: "300px" }}>
+                    <ResponsiveContainer width="100%" height="100%">
+                      <BarChart
+                        data={Object.entries(tree).map(([name, d]: any) => ({
+                          name,
+                          a: d.a,
+                          t: d.t
+                        }))}
+                        margin={{ top: 5, right: 20, left: 10, bottom: 45 }}
+                      >
+                        <XAxis dataKey="name" tick={{ fontSize: 9 }} />
+                        <YAxis tick={{ fontSize: 9 }} />
+                        <Tooltip formatter={(v: any) => format(v)} />
+                        <Legend wrapperStyle={{ fontSize: "10px" }} />
+                        <Bar dataKey="a" fill="#006837" />
+                        <Bar dataKey="t" fill="#f59e0b" />
+                      </BarChart>
+                    </ResponsiveContainer>
+                  </div>
+                </div>
+
+                {/* PIE CHART */}
+                <div
+                  className="chart-box"
+                  style={{
+                    flex: 1,
+                    minWidth: "260px",
+                    border: "1px solid #e2e8f0",
+                    borderRadius: "8px",
+                    padding: "10px"
+                  }}
+                >
+                  <h4 style={{ fontSize: "11px", textAlign: "center", marginBottom: "10px" }}>
+                    Prog vs Ops
+                  </h4>
+
+                  <div style={{ width: "100%", height: "300px" }}>
+                    <ResponsiveContainer width="100%" height="100%">
+                      <PieChart>
+                        <Pie
+                          data={pieData}
+                          dataKey="value"
+                          cx="50%"
+                          cy="50%"
+                          innerRadius={40}
+                          outerRadius={70}
+                          label={(e: any) => `${(e.percent * 100).toFixed(0)}%`}
+                        >
+                          <Cell fill="#006837" />
+                          <Cell fill="#f59e0b" />
+                        </Pie>
+                        <Legend wrapperStyle={{ fontSize: "10px" }} />
+                      </PieChart>
+                    </ResponsiveContainer>
+                  </div>
                 </div>
               </div>
             </div>
@@ -825,8 +918,16 @@ const handlePrint = () => {
                 </div>
               </div>
             )}
-          <div className="table-wrapper">
-            <table style={{ width: "100%", borderCollapse: "collapse" }}>
+          <div
+            className="table-wrapper"
+            style={{
+              width: "100%",
+              overflow: "auto",
+              maxHeight: "70vh",
+              position: "relative"
+            }}
+          >
+            <table style={{ borderCollapse: "collapse", minWidth: "1100px", width: "100%" }}>
               <thead>
                 <tr>
                   <th style={{ ...thStyle, textAlign: "center" }}>Struktur Divisi / Organ</th>
@@ -921,8 +1022,9 @@ const handlePrint = () => {
               </tbody>
             </table>
           </div>
-          </div>
-        )}
+        </div>
+     )}
+
 {activeTab === "reportDD" && (
   <div style={{ overflowX: "auto" }}>
     <h3 style={{ fontSize: "16px", color: "#006837", marginBottom: "20px", fontWeight: "800" }}>
@@ -1055,7 +1157,9 @@ const handlePrint = () => {
                     }}
                     style={{ background: "#f1f5f9", fontWeight: 700, cursor: "pointer" }}
                   >
-                    <td style={tdStyle}>{openDD ? "▼" : "▶"} {akunDD}</td>
+                    <td style={{ ...tdStyle, position: "sticky", left: 0, background: "#f1f5f9", zIndex: 2 }}>
+                      {openDD ? "▼" : "▶"} {akunDD}
+                    </td>
                     <td style={tdRight}>{format(d.a)}</td>
                     <td style={tdRight}>{format(d.um)}</td>
                     <td style={tdRight}>{format(d.b)}</td>
@@ -1078,7 +1182,7 @@ const handlePrint = () => {
                             onClick={() => setExpandedProg(openProg ? null : prog)}
                             style={{ cursor: "pointer" }}
                           >
-                            <td style={{ ...tdStyle, paddingLeft: "20px" }}>
+                            <td style={{ ...tdStyle, ...firstColStyle, paddingLeft: "20px" }}>
                               {openProg ? "▼" : "▶"} {prog}
                             </td>
                             <td style={tdRight}>{format(p.a)}</td>
@@ -1129,192 +1233,7 @@ const handlePrint = () => {
     </div>
   </div>
 )}
-
-        {activeTab === "reportDD" && (
-          <div style={{ overflowX: "auto" }}>
-            <h3 style={{ fontSize: "16px", color: "#006837", marginBottom: "20px", fontWeight: '800' }}>Report Dompet Dhuafa</h3>
-            
-            {/* BARIS 1: KPI UTAMA (6 Kolom) */}
-            <div style={{ display: "grid", gridTemplateColumns: "repeat(6, 1fr)", gap: "10px", marginBottom: "10px" }}>
-              <StatCard title="Anggaran" value={format(grandTotal.a)} />
-              <StatCard title="UM" value={format(grandTotal.um)} color="#0284c7" />
-              <StatCard title="Beban" value={format(grandTotal.b)} color="#f59e0b" />
-              <StatCard title="Total Trx" value={format(grandTotal.t)} />
-              <StatCard title="Saldo" value={format(grandTotal.a - grandTotal.t)} color="#dc2626" />
-              <StatCard title="Serapan" value={getSerapan(grandTotal.t, grandTotal.a)} color="#006837" />
-            </div>
-
-            {/* BARIS 2: KPI TAHUNAN (4 Kolom) */}
-            <div style={{ display: "grid", gridTemplateColumns: "repeat(4, 1fr)", gap: "10px", marginBottom: "25px" }}>
-              <StatCard title="Anggaran Tahunan" value={format(totalAnggaranTahunan)} />
-              <StatCard title="Transaksi Tahunan" value={format(totalTransaksiTahunan)} color="#0284c7" />
-              <StatCard title="Saldo Tahunan" value={format(totalSaldoTahunan)} color={totalSaldoTahunan < 0 ? "#dc2626" : "#111"} />
-              <StatCard title="Serapan Tahunan" value={`${serapanTahunan.toFixed(1)}%`} color={serapanTahunan > 100 ? "#dc2626" : "#006837"} />
-            </div>
-
-            {/* BARIS 3: ASNAF & PIE CHART (Side-by-Side) */}
-            <div style={{ display: "flex", gap: "20px", marginBottom: "30px", alignItems: 'flex-start' }}>
-              <div style={{ flex: 2 }}>
-                <p style={{ fontSize: '11px', fontWeight: 'bold', color: '#475569', marginBottom: '8px', textTransform: 'uppercase' }}>Distribusi Asnaf</p>
-                <div style={{ display: "grid", gridTemplateColumns: "repeat(2, 1fr)", gap: "10px" }}>
-                  {Object.entries(asnafMap).map(([k, v]: any) => (
-                    <StatCard key={k} title={k} value={format(v)} color="#10b981" />
-                  ))}
-                </div>
-              </div>
-              
-              <div style={{ flex: 1, background: '#fff', padding: '15px', borderRadius: '12px', border: '1px solid #f1f5f9' }}>
-                <p style={{ fontSize: '11px', fontWeight: 'bold', color: '#475569', marginBottom: '10px', textAlign: 'center', textTransform: 'uppercase' }}>Prog vs Ops</p>
-                <div style={{ height: "140px", width: "100%" }}>
-                  <ResponsiveContainer key={printKey} width="100%" height="100%">
-                    <PieChart>
-                      <Pie data={pieData} dataKey="value" cx="50%" cy="50%" innerRadius={30} outerRadius={50} isAnimationActive={false} label={(entry: any) => `${(entry.percent * 100).toFixed(0)}%`}>
-                        <Cell fill="#006837" /><Cell fill="#f59e0b" />
-                      </Pie>
-                      <Legend iconSize={8} wrapperStyle={{ fontSize: "10px", paddingTop: '10px' }} />
-                    </PieChart>
-                  </ResponsiveContainer>
-                </div>
-              </div>
-            </div>
-
-            <div className="table-wrapper">
-            <table style={{ width: "100%", borderCollapse: "collapse", fontSize: "11px" }}>
-      <thead>
-        <tr>
-          <th style={{ ...thStyle, textAlign: "left" }}>Akun DD</th>
-          <th style={thStyle}>Anggaran</th>
-          <th style={thStyle}>UM</th>
-          <th style={thStyle}>Beban</th>
-          <th style={thStyle}>Total</th>
-          <th style={thStyle}>Saldo</th>
-          <th style={{ ...thStyle, textAlign: "center" }}>%</th>
-        </tr>
-      </thead>
-
-      <tbody>
-        {Object.entries(treeDD).map(([akunDD, d]: any) => {
-          const openDD = expandedDD === akunDD;
-          const serapanDD = d.a > 0 ? (d.t / d.a) * 100 : 0;
-
-          return (
-            <React.Fragment key={akunDD}>
-              
-              {/* LEVEL 1: AKUN DD */}
-             <tr
-              onClick={() => {
-                setExpandedDD(openDD ? null : akunDD);
-                setExpandedProg(null);
-              }}
-              style={{
-                background: "#f1f5f9",
-                cursor: "pointer",
-                fontWeight: 700,
-                transition: "0.2s",
-              }}
-              onMouseEnter={(e) => {
-                e.currentTarget.style.background = "#95bba0";
-              }}
-              onMouseLeave={(e) => {
-                e.currentTarget.style.background = "#f1f5f9";
-              }}
-            >
-            
-                <td style={{ ...tdStyle }}>
-                  {openDD ? "▼" : "▶"} {akunDD}
-                </td>
-                <td style={{ ...tdStyle, textAlign: "right" }}>{format(d.a)}</td>
-                <td style={{ ...tdStyle, textAlign: "right" }}>{format(d.um)}</td>
-                <td style={{ ...tdStyle, textAlign: "right" }}>{format(d.b)}</td>
-                <td style={{ ...tdStyle, textAlign: "right" }}>{format(d.t)}</td>
-                <td style={{ ...tdStyle, textAlign: "right" }}>{format(d.a - d.t)}</td>
-                <td style={{ ...tdStyle, textAlign: "center", color: serapanDD < 70 ? "#dc2626" : "#006837", fontWeight: 700 }}>
-                  {serapanDD.toFixed(1)}%
-                </td>
-              </tr>
-
-              {/* LEVEL 2: PROGRAM DD */}
-              {openDD &&
-                Object.entries(d.programsDD).map(([prog, p]: any) => {
-                  const openProg = expandedProg === prog;
-                  const serapanProg = p.a > 0 ? (p.t / p.a) * 100 : 0;
-
-                  return (
-                    <React.Fragment key={prog}>
-                      <tr
-                        onClick={() => setExpandedProg(openProg ? null : prog)}
-                        style={{
-                          background: "#ffffff",
-                          fontWeight: 700,
-                          cursor: "pointer",
-                          transition: "0.2s",
-                        }}
-                        onMouseEnter={(e) => {
-                          e.currentTarget.style.background = "#95bba0";
-                        }}
-                        onMouseLeave={(e) => {
-                          e.currentTarget.style.background = "#ffffff";
-                        }}
-                      >
-                        <td style={{ ...tdStyle, paddingLeft: "20px" }}>
-                          {openProg ? "▼" : "▶"} {prog}
-                        </td>
-                        <td style={{ ...tdStyle, textAlign: "right" }}>{format(p.a)}</td>
-                        <td style={{ ...tdStyle, textAlign: "right" }}>{format(p.um)}</td>
-                        <td style={{ ...tdStyle, textAlign: "right" }}>{format(p.b)}</td>
-                        <td style={{ ...tdStyle, textAlign: "right" }}>{format(p.t)}</td>
-                        <td style={{ ...tdStyle, textAlign: "right" }}>{format(p.a - p.t)}</td>
-                        <td style={{ ...tdStyle, textAlign: "center" }}>{serapanProg.toFixed(1)}%</td>
-                      </tr>
-
-                      {/* LEVEL 3: AKUN BUDGET */}
-                      {openProg &&
-                        Object.entries(p.akunBudget).map(([akun, a]: any) => {
-                          const serapanAkun = a.a > 0 ? (a.t / a.a) * 100 : 0;
-
-                          return (
-                            <tr
-                              key={akun}
-                              {...rowHover("#fafafa", "#95bba0")}
-                            >
-                              <td style={{ ...tdStyle, paddingLeft: "40px" }}>• {akun}</td>
-                              <td style={{ ...tdStyle, textAlign: "right" }}>{format(a.a)}</td>
-                              <td style={{ ...tdStyle, textAlign: "right" }}>{format(a.um)}</td>
-                              <td style={{ ...tdStyle, textAlign: "right" }}>{format(a.b)}</td>
-                              <td style={{ ...tdStyle, textAlign: "right" }}>{format(a.t)}</td>
-                              <td style={{ ...tdStyle, textAlign: "right" }}>{format(a.a - a.t)}</td>
-                              <td style={{ ...tdStyle, textAlign: "center" }}>{serapanAkun.toFixed(1)}%</td>
-                            </tr>
-                          );
-                        })}
-                    </React.Fragment>
-                  );
-                })}
-            </React.Fragment>
-          );
-        })}
-        {/* --- BARIS GRAND TOTAL --- */}
-          <tr style={{ 
-            background: "#6c9b6f", 
-            color: "#ffffff", 
-            fontWeight: "bold", 
-            fontSize: "12px" 
-          }}>
-            <td style={{ ...tdStyle, padding: "10px" }}>GRAND TOTAL</td>
-            <td style={{ ...tdStyle, textAlign: "right" }}>{format(grandTotal.a)}</td>
-            <td style={{ ...tdStyle, textAlign: "right" }}>{format(grandTotal.um)}</td>
-            <td style={{ ...tdStyle, textAlign: "right" }}>{format(grandTotal.b)}</td>
-            <td style={{ ...tdStyle, textAlign: "right" }}>{format(grandTotal.t)}</td>
-            <td style={{ ...tdStyle, textAlign: "right" }}>{format(grandTotal.a - grandTotal.t)}</td>
-            <td style={{ ...tdStyle, textAlign: "center" }}>{totalSerapan.toFixed(1)}%</td>
-          </tr>
-      </tbody>
-    </table>
-  </div>
-  </div>
-  )}
-  </div>
-  </div>
+      </div>
+    </div>
   );
 }
-  
