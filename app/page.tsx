@@ -365,14 +365,14 @@ const totalSerapan =
   });
 
  const thStyle: CSSProperties = {
-  background: "#f9fafb",
-  color: "#374151",
+  background: "#f8fafc",
+  color: "#334155",
   padding: "10px 8px",
-  fontSize: "10.5px",
+  fontSize: "11px",
   fontWeight: 700,
   textTransform: "uppercase",
-  letterSpacing: "0.5px",
-  border: "1px solid #e2e8f0",
+  letterSpacing: "0.6px",
+  borderBottom: "2px solid #e2e8f0",
   textAlign: "right",
   position: "sticky",
   top: 0,
@@ -380,19 +380,22 @@ const totalSerapan =
 };
 
 const tdStyle: CSSProperties = {
-  border: "1px solid #e2e8f0",
-  padding: "4px 6px",
-  fontSize: "11px",
+  borderBottom: "1px solid #e5e7eb",
+  padding: "6px 8px",
+  fontSize: "12px",
+  fontWeight: 500,
+  color: "#111827"
 };
 
 const tdRight: CSSProperties = {
   ...tdStyle,
   textAlign: "right",
+  fontVariantNumeric: "tabular-nums" // 🔥 angka jadi rapi sejajar
 };
 
 const tdCenter: CSSProperties = {
   ...tdStyle,
-  textAlign: "center",
+  textAlign: "center"
 };
 
 const tdIndent = (left: number): CSSProperties => ({
@@ -647,18 +650,23 @@ const tableStyle: CSSProperties = {
           }
 
           table {
-            font-family: Inter, sans-serif;
-            font-size: 12px;
-            color: #0f172a;
+            font-family: "Georgia", "Times New Roman", serif;
+            font-size: 12.5px;
+            color: #1f2937;
+            letter-spacing: 0.2px;
           }
 
           th {
+            font-size: 11px;
             font-weight: 700;
-            letter-spacing: 0.4px;
+            text-transform: uppercase;
+            letter-spacing: 0.8px;
+            color: #374151;
           }
 
           td {
-            transition: background 0.15s ease;
+            font-size: 12px;
+            font-weight: 500;
           }
       `}</style>
       
@@ -1097,6 +1105,7 @@ const tableStyle: CSSProperties = {
                 style={{
                   background: "#f1f5f9",
                   fontWeight: 800,
+                  fontSize: "12px",
                   cursor: "pointer"
                 }}
                 onMouseEnter={(e) => {
@@ -1128,7 +1137,7 @@ const tableStyle: CSSProperties = {
                     <React.Fragment key={org}>
 
                       <tr
-                        style={{ background: "#ffffff", cursor: "default" }}
+                        style={{ background: "#ffffff", fontWeight: 500, color: "#334155", cursor: "default" }}
                         onMouseEnter={(e) => {
                           e.currentTarget.style.background = "#f8fafc";
                         }}
@@ -1165,7 +1174,7 @@ const tableStyle: CSSProperties = {
                             style={{
                               background: "#fcfcfd",
                               cursor: "pointer",
-                              fontWeight: 600
+                              fontWeight: 500
                             }}
                             onMouseEnter={(e) => (e.currentTarget.style.background = "#f1f5f9")}
                             onMouseLeave={(e) => (e.currentTarget.style.background = "#fcfcfd")}
@@ -1189,7 +1198,7 @@ const tableStyle: CSSProperties = {
                                   <tr
                                     key={akun}
                                     style={{
-                                      background: "#ffffff"
+                                      background: "#ffffff", fontWeight: 400, color: "#64748b", cursor: "default"
                                     }}
                                     onMouseEnter={(e) =>
                                       (e.currentTarget.style.background = "#fefce8")
@@ -1222,10 +1231,10 @@ const tableStyle: CSSProperties = {
                 {/* GRAND TOTAL */}
         <tr
           style={{
-            background: "#6c9b6f",
-            color: "#fff",
+            background: "#0f172a",
+            color: "#ffffff",
             fontWeight: 800,
-            borderTop: "2px solid #4f7f54"
+            borderTop: "2px solid #334155"
           }}
         >
           <td style={{ ...tdStyle, fontWeight: 800 }}>
