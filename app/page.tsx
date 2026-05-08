@@ -448,6 +448,14 @@ const stickyCol = (left: number): CSSProperties => ({
   borderRight: "1px solid #e2e8f0"
 });
 
+const tableStyle: CSSProperties = {
+  borderCollapse: "collapse",
+  width: "100%",
+  minWidth: "1200px",
+  fontFamily: "Inter, sans-serif",
+  fontSize: "12px",
+  color: "#0f172a"
+};
   return (
     <div style={{ padding: "20px", background: "#f8fafc", minHeight: "100vh", fontFamily: "sans-serif" }}>
       <style>{`
@@ -638,6 +646,20 @@ const stickyCol = (left: number): CSSProperties => ({
             display: none; /* Chrome */
           }
 
+          table {
+            font-family: Inter, sans-serif;
+            font-size: 12px;
+            color: #0f172a;
+          }
+
+          th {
+            font-weight: 700;
+            letter-spacing: 0.4px;
+          }
+
+          td {
+            transition: background 0.15s ease;
+          }
       `}</style>
       
       {showUMModal && (
@@ -942,7 +964,7 @@ const stickyCol = (left: number): CSSProperties => ({
               position: "relative"
             }}
           >
-            <table style={{ borderCollapse: "collapse", minWidth: "1100px", width: "100%" }}>
+            <table style={tableStyle}>
               <thead>
                 <tr>
                   <th style={{ ...thStyle, textAlign: "center" }}>Struktur Divisi / Organ</th>
@@ -1133,56 +1155,61 @@ const stickyCol = (left: number): CSSProperties => ({
 
                         return (
                           <React.Fragment key={sub}>
-
-                            <tr
-                              style={{ background: "#fcfcfd" }}
-                              onMouseEnter={(e) => {
-                                e.currentTarget.style.background = "#f1f5f9";
-                              }}
-                              onMouseLeave={(e) => {
-                                e.currentTarget.style.background = "#fcfcfd";
-                              }}
-                            >
-                              <td style={{ ...tdStyle, paddingLeft: "40px", color: "#475569" }}>
-                                • {sub}
-                              </td>
-                              <td style={tdRight}>{format(s.a)}</td>
-                              <td style={tdRight}>{format(s.um)}</td>
-                              <td style={tdRight}>{format(s.b)}</td>
-                              <td style={tdRight}>{format(s.t)}</td>
-                              <td style={tdRight}>{format(s.a - s.t)}</td>
-                              <td style={tdCenter}>{serapanSub.toFixed(1)}%</td>
-                            </tr>
-
+                          <tr
+                            onClick={() =>
+                              setExpandedSub(prev => ({
+                                ...prev,
+                                [sub]: !prev[sub]
+                              }))
+                            }
+                            style={{
+                              background: "#fcfcfd",
+                              cursor: "pointer",
+                              fontWeight: 600
+                            }}
+                            onMouseEnter={(e) => (e.currentTarget.style.background = "#f1f5f9")}
+                            onMouseLeave={(e) => (e.currentTarget.style.background = "#fcfcfd")}
+                          >
+                            <td style={{ ...tdStyle, paddingLeft: "40px" }}>
+                              {expandedSub[sub] ? "▼" : "▶"} {sub}
+                            </td>
+                            <td style={tdRight}>{format(s.a)}</td>
+                            <td style={tdRight}>{format(s.um)}</td>
+                            <td style={tdRight}>{format(s.b)}</td>
+                            <td style={tdRight}>{format(s.t)}</td>
+                            <td style={tdRight}>{format(s.a - s.t)}</td>
+                            <td style={tdCenter}>{serapanSub.toFixed(1)}%</td>
+                          </tr>
                             {/* ================= AKUN BUDGET LEVEL 4 ================= */}
-                            {Object.entries(s.akuns || {}).map(([akun, a]: any) => {
-                              const serapanAkun = a.a > 0 ? (a.t / a.a) * 100 : 0;
+                            {expandedSub[sub] &&
+                              Object.entries(s.akuns || {}).map(([akun, a]: any) => {
+                                const serapanAkun = a.a > 0 ? (a.t / a.a) * 100 : 0;
 
-                              return (
-                                <tr
-                                  key={akun}
-                                  style={{ background: "#ffffff" }}
-                                  onMouseEnter={(e) => {
-                                    e.currentTarget.style.background = "#fefce8";
-                                  }}
-                                  onMouseLeave={(e) => {
-                                    e.currentTarget.style.background = "#ffffff";
-                                  }}
-                                >
-                                  <td style={{ ...tdStyle, paddingLeft: "60px", color: "#64748b" }}>
-                                    ▸ {akun}
-                                  </td>
-                                  <td style={tdRight}>{format(a.a)}</td>
-                                  <td style={tdRight}>{format(a.um)}</td>
-                                  <td style={tdRight}>{format(a.b)}</td>
-                                  <td style={tdRight}>{format(a.t)}</td>
-                                  <td style={tdRight}>{format(a.a - a.t)}</td>
-                                  <td style={tdCenter}>
-                                    {serapanAkun.toFixed(1)}%
-                                  </td>
-                                </tr>
-                              );
-                            })}
+                                return (
+                                  <tr
+                                    key={akun}
+                                    style={{
+                                      background: "#ffffff"
+                                    }}
+                                    onMouseEnter={(e) =>
+                                      (e.currentTarget.style.background = "#fefce8")
+                                    }
+                                    onMouseLeave={(e) =>
+                                      (e.currentTarget.style.background = "#ffffff")
+                                    }
+                                  >
+                                    <td style={{ ...tdStyle, paddingLeft: "60px", color: "#64748b" }}>
+                                      ▸ {akun}
+                                    </td>
+                                    <td style={tdRight}>{format(a.a)}</td>
+                                    <td style={tdRight}>{format(a.um)}</td>
+                                    <td style={tdRight}>{format(a.b)}</td>
+                                    <td style={tdRight}>{format(a.t)}</td>
+                                    <td style={tdRight}>{format(a.a - a.t)}</td>
+                                    <td style={tdCenter}>{serapanAkun.toFixed(1)}%</td>
+                                  </tr>
+                                );
+                              })}
                           </React.Fragment>
                         );
                       })}
