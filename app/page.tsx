@@ -408,6 +408,14 @@ const firstColStyle: CSSProperties = {
   borderRight: "1px solid #e2e8f0"
 };
 
+const stickyLeft = (left: number, bg: string = "#fff"): CSSProperties => ({
+  position: "sticky",
+  left,
+  background: bg,
+  zIndex: 3,
+  borderRight: "1px solid #e2e8f0"
+});
+
 const rowHover = (base: string, hover: string) => ({
   style: {
     background: base,
@@ -432,6 +440,13 @@ const handlePrint = () => {
   }, 300); // 🔥 kasih waktu render ulang
 };
 
+const stickyCol = (left: number): CSSProperties => ({
+  position: "sticky",
+  left,
+  background: "#f9fafb",
+  zIndex: 3,
+  borderRight: "1px solid #e2e8f0"
+});
 
   return (
     <div style={{ padding: "20px", background: "#f8fafc", minHeight: "100vh", fontFamily: "sans-serif" }}>
@@ -1024,6 +1039,186 @@ const handlePrint = () => {
           </div>
         </div>
      )}
+{activeTab === "detail" && (
+  <div className="table-wrapper" style={{ width: "100%", overflow: "auto" }}>
+    <table
+      style={{
+        borderCollapse: "collapse",
+        minWidth: "1200px",
+        width: "100%",
+        fontSize: "11px"
+      }}
+    >
+      <thead>
+        <tr>
+          <th style={{ ...thStyle, textAlign: "left" }}>Struktur Detail</th>
+          <th style={thStyle}>Anggaran</th>
+          <th style={thStyle}>UM</th>
+          <th style={thStyle}>Beban</th>
+          <th style={thStyle}>Total</th>
+          <th style={thStyle}>Saldo</th>
+          <th style={{ ...thStyle, textAlign: "center" }}>%</th>
+        </tr>
+      </thead>
+
+      <tbody>
+        {Object.entries(tree).map(([div, d]: any) => {
+          const openDiv = expandedDiv === div;
+          const serapanDiv = d.a > 0 ? (d.t / d.a) * 100 : 0;
+
+          return (
+            <React.Fragment key={div}>
+
+              {/* ================= DIVISI LEVEL 1 ================= */}
+              <tr
+                onClick={() => setExpandedDiv(openDiv ? null : div)}
+                style={{
+                  background: "#f1f5f9",
+                  fontWeight: 800,
+                  cursor: "pointer"
+                }}
+                onMouseEnter={(e) => {
+                  e.currentTarget.style.background = "#e2e8f0";
+                }}
+                onMouseLeave={(e) => {
+                  e.currentTarget.style.background = "#f1f5f9";
+                }}
+              >
+                <td style={{ ...tdStyle, ...stickyLeft(0, "#f1f5f9") }}>
+                  {openDiv ? "▼" : "▶"} {div}
+                </td>
+                <td style={tdRight}>{format(d.a)}</td>
+                <td style={tdRight}>{format(d.um)}</td>
+                <td style={tdRight}>{format(d.b)}</td>
+                <td style={tdRight}>{format(d.t)}</td>
+                <td style={tdRight}>{format(d.a - d.t)}</td>
+                <td style={{ ...tdCenter, color: serapanDiv < 70 ? "#dc2626" : "#006837" }}>
+                  {serapanDiv.toFixed(1)}%
+                </td>
+              </tr>
+
+              {/* ================= ORGAN LEVEL 2 ================= */}
+              {openDiv &&
+                Object.entries(d.organs || {}).map(([org, o]: any) => {
+                  const serapanOrg = o.a > 0 ? (o.t / o.a) * 100 : 0;
+
+                  return (
+                    <React.Fragment key={org}>
+
+                      <tr
+                        style={{ background: "#ffffff", cursor: "default" }}
+                        onMouseEnter={(e) => {
+                          e.currentTarget.style.background = "#f8fafc";
+                        }}
+                        onMouseLeave={(e) => {
+                          e.currentTarget.style.background = "#ffffff";
+                        }}
+                      >
+                        <td style={{ ...tdStyle, paddingLeft: "20px" }}>
+                          ↳ {org}
+                        </td>
+                        <td style={tdRight}>{format(o.a)}</td>
+                        <td style={tdRight}>{format(o.um)}</td>
+                        <td style={tdRight}>{format(o.b)}</td>
+                        <td style={tdRight}>{format(o.t)}</td>
+                        <td style={tdRight}>{format(o.a - o.t)}</td>
+                        <td style={tdCenter}>
+                          {serapanOrg.toFixed(1)}%
+                        </td>
+                      </tr>
+
+                      {/* ================= SUB PROGRAM LEVEL 3 ================= */}
+                      {Object.entries(o.subs || {}).map(([sub, s]: any) => {
+                        const serapanSub = s.a > 0 ? (s.t / s.a) * 100 : 0;
+
+                        return (
+                          <React.Fragment key={sub}>
+
+                            <tr
+                              style={{ background: "#fcfcfd" }}
+                              onMouseEnter={(e) => {
+                                e.currentTarget.style.background = "#f1f5f9";
+                              }}
+                              onMouseLeave={(e) => {
+                                e.currentTarget.style.background = "#fcfcfd";
+                              }}
+                            >
+                              <td style={{ ...tdStyle, paddingLeft: "40px", color: "#475569" }}>
+                                • {sub}
+                              </td>
+                              <td style={tdRight}>{format(s.a)}</td>
+                              <td style={tdRight}>{format(s.um)}</td>
+                              <td style={tdRight}>{format(s.b)}</td>
+                              <td style={tdRight}>{format(s.t)}</td>
+                              <td style={tdRight}>{format(s.a - s.t)}</td>
+                              <td style={tdCenter}>{serapanSub.toFixed(1)}%</td>
+                            </tr>
+
+                            {/* ================= AKUN BUDGET LEVEL 4 ================= */}
+                            {Object.entries(s.akuns || {}).map(([akun, a]: any) => {
+                              const serapanAkun = a.a > 0 ? (a.t / a.a) * 100 : 0;
+
+                              return (
+                                <tr
+                                  key={akun}
+                                  style={{ background: "#ffffff" }}
+                                  onMouseEnter={(e) => {
+                                    e.currentTarget.style.background = "#fefce8";
+                                  }}
+                                  onMouseLeave={(e) => {
+                                    e.currentTarget.style.background = "#ffffff";
+                                  }}
+                                >
+                                  <td style={{ ...tdStyle, paddingLeft: "60px", color: "#64748b" }}>
+                                    ▸ {akun}
+                                  </td>
+                                  <td style={tdRight}>{format(a.a)}</td>
+                                  <td style={tdRight}>{format(a.um)}</td>
+                                  <td style={tdRight}>{format(a.b)}</td>
+                                  <td style={tdRight}>{format(a.t)}</td>
+                                  <td style={tdRight}>{format(a.a - a.t)}</td>
+                                  <td style={tdCenter}>
+                                    {serapanAkun.toFixed(1)}%
+                                  </td>
+                                </tr>
+                              );
+                            })}
+                          </React.Fragment>
+                        );
+                      })}
+                    </React.Fragment>
+                  );
+                })}
+            </React.Fragment>
+          );
+        })}
+                {/* GRAND TOTAL */}
+        <tr
+          style={{
+            background: "#6c9b6f",
+            color: "#fff",
+            fontWeight: 800,
+            borderTop: "2px solid #4f7f54"
+          }}
+        >
+          <td style={{ ...tdStyle, fontWeight: 800 }}>
+            GRAND TOTAL
+          </td>
+
+          <td style={tdRight}>{format(grandTotal.a)}</td>
+          <td style={tdRight}>{format(grandTotal.um)}</td>
+          <td style={tdRight}>{format(grandTotal.b)}</td>
+          <td style={tdRight}>{format(grandTotal.t)}</td>
+          <td style={tdRight}>{format(grandTotal.a - grandTotal.t)}</td>
+
+          <td style={{ ...tdCenter, fontWeight: 800 }}>
+            {totalSerapan.toFixed(1)}%
+          </td>
+        </tr>
+      </tbody>
+    </table>
+  </div>
+)}
 
 {activeTab === "reportDD" && (
   <div style={{ overflowX: "auto" }}>
@@ -1157,7 +1352,7 @@ const handlePrint = () => {
                     }}
                     style={{ background: "#f1f5f9", fontWeight: 700, cursor: "pointer" }}
                   >
-                    <td style={{ ...tdStyle, position: "sticky", left: 0, background: "#f1f5f9", zIndex: 2 }}>
+                   <td style={{ ...tdStyle, ...stickyCol(0), background: "#f1f5f9" }}>
                       {openDD ? "▼" : "▶"} {akunDD}
                     </td>
                     <td style={tdRight}>{format(d.a)}</td>
@@ -1182,7 +1377,7 @@ const handlePrint = () => {
                             onClick={() => setExpandedProg(openProg ? null : prog)}
                             style={{ cursor: "pointer" }}
                           >
-                            <td style={{ ...tdStyle, ...firstColStyle, paddingLeft: "20px" }}>
+                            <td style={{ ...tdStyle, ...stickyCol(0), paddingLeft: "20px" }}>
                               {openProg ? "▼" : "▶"} {prog}
                             </td>
                             <td style={tdRight}>{format(p.a)}</td>
