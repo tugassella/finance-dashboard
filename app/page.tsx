@@ -1258,7 +1258,7 @@ const tableStyle: CSSProperties = {
 
 {activeTab === "reportDD" && (
   <div style={{ overflowX: "auto" }}>
-    <h3 style={{ fontSize: "16px", color: "#006837", marginBottom: "20px", fontWeight: "800" }}>
+    <h3 style={{ fontSize: "16px", color: "#006837", marginBottom: "20px", fontWeight: "700" }}>
       Report Dompet Dhuafa
     </h3>
 
