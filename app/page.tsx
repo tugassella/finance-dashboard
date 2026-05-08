@@ -364,7 +364,7 @@ const totalSerapan =
     }
   });
 
-  const thStyle: React.CSSProperties = {
+ const thStyle: CSSProperties = {
   background: "#f9fafb",
   color: "#374151",
   padding: "10px 8px",
@@ -372,29 +372,44 @@ const totalSerapan =
   fontWeight: 700,
   textTransform: "uppercase",
   letterSpacing: "0.5px",
-  borderBottom: "1px solid #e5e7eb",
-  textAlign: "right"
+  border: "1px solid #e2e8f0",
+  textAlign: "right",
 };
 
-const tdStyle: React.CSSProperties = {
-  padding: "6px 8px",
+const tdStyle: CSSProperties = {
+  border: "1px solid #e2e8f0",
+  padding: "4px 6px",
   fontSize: "11px",
-  borderBottom: "1px solid #f1f5f9",
-  lineHeight: "1.4"
 };
 
-const rowHover = (base: string, hover: string, extraStyle: any = {}) => ({
+const tdRight: CSSProperties = {
+  ...tdStyle,
+  textAlign: "right",
+};
+
+const tdCenter: CSSProperties = {
+  ...tdStyle,
+  textAlign: "center",
+};
+
+const tdIndent = (left: number): CSSProperties => ({
+  ...tdStyle,
+  padding: `4px 6px 4px ${left}px`,
+});
+
+const rowHover = (base: string, hover: string) => ({
   style: {
     background: base,
     transition: "0.2s",
-    ...extraStyle
+  } as CSSProperties,
+
+  onMouseEnter: (e: React.MouseEvent<HTMLTableRowElement>) => {
+    (e.currentTarget as HTMLTableRowElement).style.background = hover;
   },
-  onMouseEnter: (e: any) => {
-    e.currentTarget.style.background = hover;
+
+  onMouseLeave: (e: React.MouseEvent<HTMLTableRowElement>) => {
+    (e.currentTarget as HTMLTableRowElement).style.background = base;
   },
-  onMouseLeave: (e: any) => {
-    e.currentTarget.style.background = base;
-  }
 });
 
 const handlePrint = () => {
@@ -479,7 +494,72 @@ const handlePrint = () => {
           margin: 0.5cm;
         }
       }
+      /* =========================
+        MOBILE RESPONSIVE
+      ========================= */
 
+      @media (max-width: 768px) {
+
+        .dashboard-root {
+          padding: 10px !important;
+        }
+
+        .dashboard-header-inner {
+          flex-direction: column !important;
+          align-items: flex-start !important;
+          gap: 12px !important;
+        }
+
+        .filter-wrapper {
+          flex-direction: column !important;
+          align-items: stretch !important;
+        }
+
+        .kpi-container {
+          grid-template-columns: 1fr !important;
+        }
+
+        .charts-wrapper {
+          flex-direction: column !important;
+        }
+
+        .chart-container {
+          height: 260px !important;
+        }
+
+        .trend-container {
+          height: 300px !important;
+        }
+
+        .tab-wrapper {
+          overflow-x: auto;
+          white-space: nowrap;
+          padding-bottom: 6px;
+        }
+
+        .table-wrapper {
+          width: 100%;
+          overflow-x: auto;
+          -webkit-overflow-scrolling: touch;
+        }
+
+        .table-wrapper table {
+          min-width: 1100px;
+          width: max-content;
+        }
+
+        table {
+          min-width: 900px;
+        }
+
+        .dashboard-content {
+          padding: 12px !important;
+        }
+
+        h1 {
+          font-size: 16px !important;
+        }
+      }
         /* tab tetap */
         .tab-btn {
           padding: 10px 20px;
@@ -492,8 +572,28 @@ const handlePrint = () => {
         }
         .tab-active { background: #006837; color: white; }
         .tab-inactive { background: #e2e8f0; color: #64748b; }
-      `}</style>
 
+          /* =========================
+            SCROLL FIX
+          ========================= */
+
+          .charts-scroll {
+            width: 100%;
+            overflow-x: auto;
+            -webkit-overflow-scrolling: touch;
+          }
+
+          .charts-scroll > div {
+            width: max-content;
+          }
+          .table-scroll,
+          .table-wrapper {
+            width: 100%;
+            overflow-x: auto;
+            -webkit-overflow-scrolling: touch;
+          }
+      `}</style>
+      
       {showUMModal && (
         <div className="no-print" style={{ position: "fixed", inset: 0, background: "rgba(0,0,0,0.5)", display: "flex", justifyContent: "center", alignItems: "center", zIndex: 100 }}>
           <div style={{ background: "#fff", padding: "20px", borderRadius: "12px", width: "450px", maxWidth: "90%" }}>
@@ -515,7 +615,14 @@ const handlePrint = () => {
       )}
 
       <div className="dashboard-header" style={{ marginBottom: "15px", borderBottom: "2px solid #006837", paddingBottom: "10px" }}>
-        <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center" }}>
+        <div 
+          className="dashboard-header-inner"
+          style={{ 
+            display: "flex", 
+            justifyContent: "space-between", 
+            alignItems: "center" 
+          }}
+        >
           <div>
             <h1 style={{ color: "#006837", margin: 0, fontSize: "20px" }}>Executive Financial Dashboard</h1>
             <p style={{ color: "#64748b", margin: 0, fontSize: "11px" }}>Great Edunesia • {tahun} • {jenisDana}</p>
@@ -525,7 +632,14 @@ const handlePrint = () => {
       </div>
 
       <div className="no-print" style={{ background: "#fff", padding: "15px", borderRadius: "12px", boxShadow: "0 2px 4px rgba(0,0,0,0.05)", marginBottom: "20px" }}>
-        <div style={{ display: "flex", gap: "15px", alignItems: "flex-end" }}>
+        <div 
+          className="filter-wrapper"
+          style={{ 
+            display: "flex", 
+            gap: "15px", 
+            alignItems: "flex-end" 
+          }}
+        >
           <FilterSelect label="Tahun" value={tahun} options={listTahun} onChange={setTahun} />
           <FilterSelect label="Jenis Dana" value={jenisDana} options={listJenisDana} onChange={setJenisDana} />
           <div style={{ position: "relative" }}>
@@ -549,7 +663,10 @@ const handlePrint = () => {
         </div>
       </div>
 
-      <div className="no-print" style={{ display: "flex", gap: "5px" }}>
+      <div 
+        className="no-print tab-wrapper" 
+        style={{ display: "flex", gap: "5px" }}
+      >
         <button onClick={() => setActiveTab("summary")} className={`tab-btn ${activeTab === "summary" ? "tab-active" : "tab-inactive"}`}>📊 Summary</button>
         <button onClick={() => setActiveTab("detail")} className={`tab-btn ${activeTab === "detail" ? "tab-active" : "tab-inactive"}`}>📝 Detail</button>
         <button onClick={() => setActiveTab("reportDD")} className={`tab-btn ${activeTab === "reportDD" ? "tab-active" : "tab-inactive"}`}>📊 Report DD</button>
@@ -565,26 +682,39 @@ const handlePrint = () => {
               </div>
             )}
 
-            <div className="kpi-container" style={{ display: "grid", gridTemplateColumns: "repeat(6, 1fr)", gap: "10px", marginBottom: "15px" }}>
+            <div className="kpi-scroll">
+              <div style={{ display: "flex", gap: "10px", minWidth: "900px" }}>
               <StatCard title="Anggaran" value={format(grandTotal.a)} color="#0284c7" />
               <StatCard title="UM" value={format(grandTotal.um)} color="#0284c7" />
               <StatCard title="Beban" value={format(grandTotal.b)} color="#0284c7" />
               <StatCard title="Total Trx" value={format(grandTotal.t)} color="#0284c7" />
               <StatCard title="Saldo" value={format(grandTotal.a - grandTotal.t)} color="#0284c7" />
               <StatCard title="Serapan" value={getSerapan(grandTotal.t, grandTotal.a)} color="#0284c7" />
-            </div>
+              </div>
+            </div> 
 
-            <div className="kpi-container" style={{ display: "grid", gridTemplateColumns: "repeat(4, 1fr)", gap: "10px", marginBottom: "20px" }}>
+            <div className="kpi-scroll">
+              <div style={{ display: "flex", gap: "10px", minWidth: "900px" }}>
               <StatCard title="Anggaran Tahunan" value={format(totalAnggaranTahunan)} />
               <StatCard title={`Transaksi YTD (s.d Bln ${maxBulan})`} value={format(totalTransaksiTahunan)} />
               <StatCard title="Saldo YTD" value={format(totalSaldoTahunan)} color={totalSaldoTahunan < 0 ? "#dc2626" : "#111"} />
               <StatCard title="Serapan YTD" value={`${serapanTahunan.toFixed(1)}%`} color={serapanTahunan > 100 ? "#dc2626" : serapanTahunan < 70 ? "#f59e0b" : "#006837"} />
+              </div>
             </div>
 
-            <div className="charts-wrapper" style={{ display: "flex", gap: "15px", marginBottom: "20px" }}>
-              <div className="chart-box" style={{ flex: 1.5, border: "1px solid #e2e8f0", borderRadius: "8px", padding: "10px" }}>
+            <div className="charts-scroll">
+              <div style={{ display: "flex", gap: "15px", minWidth: "900px" }}>
+               <div
+                  className="chart-box"
+                  style={{
+                    flex: "0 0 500px",
+                    border: "1px solid #e2e8f0",
+                    borderRadius: "8px",
+                    padding: "10px"
+                  }}
+                >
                 <h4 style={{ fontSize: "11px", textAlign: "center", marginBottom: "10px" }}>Serapan per Divisi</h4>
-                <div className="chart-container"style={{ width: "100%", height: "300px" }}>
+                <div style={{ width: "100%", height: "300px" }}>
                 <ResponsiveContainer key={printKey} width="100%" height="100%">
                     <BarChart data={Object.entries(tree).map(([name, d]: any) => ({ name, a: d.a, t: d.t }))} margin={{ top: 5, right: 20, left: 25, bottom: 45 }}>
                       <XAxis dataKey="name" tick={{ fontSize: 8 }} interval={0} angle={0} textAnchor="middle" />
@@ -597,9 +727,19 @@ const handlePrint = () => {
                   </ResponsiveContainer>
                 </div>
               </div>
-              <div className="chart-box" style={{ flex: 1, border: "1px solid #e2e8f0", borderRadius: "8px", padding: "10px" }}>
+              </div>
+
+               <div
+                  className="chart-box"
+                  style={{
+                    flex: "0 0 300px",
+                    border: "1px solid #e2e8f0",
+                    borderRadius: "8px",
+                    padding: "10px"
+                  }}
+                >
                 <h4 style={{ fontSize: "11px", textAlign: "center", marginBottom: "10px" }}>Prog vs Ops</h4>
-                <div style={{ height: "200px", width: "100%" }}>
+                <div style={{ width: "100%", height: "300px" }}>
                   <ResponsiveContainer key={printKey} width="100%" height="100%">
                     <PieChart>
                       <Pie data={pieData} dataKey="value" cx="50%" cy="50%" innerRadius={40} outerRadius={60} isAnimationActive={false} label={(entry: any) => `${(entry.percent * 100).toFixed(0)}%`}>
@@ -685,6 +825,7 @@ const handlePrint = () => {
                 </div>
               </div>
             )}
+          <div className="table-wrapper">
             <table style={{ width: "100%", borderCollapse: "collapse" }}>
               <thead>
                 <tr>
@@ -780,266 +921,212 @@ const handlePrint = () => {
               </tbody>
             </table>
           </div>
+          </div>
         )}
-{activeTab === "detail" && (
-  <div>
+{activeTab === "reportDD" && (
+  <div style={{ overflowX: "auto" }}>
+    <h3 style={{ fontSize: "16px", color: "#006837", marginBottom: "20px", fontWeight: "800" }}>
+      Report Dompet Dhuafa
+    </h3>
+
+    {/* ================= KPI ================= */}
     <div
       style={{
         display: "flex",
-        justifyContent: "space-between",
-        marginBottom: "15px",
+        gap: "10px",
+        minWidth: "max-content",
+        marginBottom: "15px"
       }}
-      className="no-print"
     >
-      <h3 style={{ fontSize: "14px", color: "#006837" }}>
-        Rincian Akun
-      </h3>
-      <input
-        type="text"
-        placeholder="Cari..."
-        value={searchTerm}
-        onChange={(e) => setSearchTerm(e.target.value)}
-        style={{
-          padding: "6px 12px",
-          borderRadius: "6px",
-          border: "1px solid #cbe1cf",
-          fontSize: "12px",
-        }}
+      <StatCard title="Anggaran" value={format(grandTotal.a)} />
+      <StatCard title="UM" value={format(grandTotal.um)} color="#0284c7" />
+      <StatCard title="Beban" value={format(grandTotal.b)} color="#f59e0b" />
+      <StatCard title="Total Trx" value={format(grandTotal.t)} />
+      <StatCard title="Saldo" value={format(grandTotal.a - grandTotal.t)} color="#dc2626" />
+      <StatCard title="Serapan" value={getSerapan(grandTotal.t, grandTotal.a)} color="#006837" />
+    </div>
+
+    {/* ================= KPI TAHUNAN ================= */}
+    <div
+      style={{
+        display: "flex",
+        gap: "10px",
+        minWidth: "max-content",
+        marginBottom: "25px"
+      }}
+    >
+      <StatCard title="Anggaran Tahunan" value={format(totalAnggaranTahunan)} />
+      <StatCard title="Transaksi Tahunan" value={format(totalTransaksiTahunan)} color="#0284c7" />
+      <StatCard
+        title="Saldo Tahunan"
+        value={format(totalSaldoTahunan)}
+        color={totalSaldoTahunan < 0 ? "#dc2626" : "#111"}
+      />
+      <StatCard
+        title="Serapan Tahunan"
+        value={`${serapanTahunan.toFixed(1)}%`}
+        color={serapanTahunan > 100 ? "#dc2626" : "#006837"}
       />
     </div>
 
-    {(() => {
-      // 🔹 HEADER STYLE (dibuat lebih halus)
-      const thStyle = {
-        padding: "6px 8px",
-        border: "1px solid #e2e8f0",   // 👈 lebih tipis dari sebelumnya
-        background: "#f8fafc",
-        fontWeight: 600,
-        fontSize: "12px",
-      };
+    {/* ================= ASNAF + PIE ================= */}
+    <div style={{ display: "flex", gap: "20px", marginBottom: "30px", minWidth: "max-content" }}>
+      <div style={{ flex: 2 }}>
+        <p style={{ fontSize: "11px", fontWeight: "bold", marginBottom: "8px" }}>
+          Distribusi Asnaf
+        </p>
 
-      // 🔹 BODY CELL
-      const tdStyle = {
-        border: "1px solid #e2e8f0",
-        padding: "4px 6px",
-        fontSize: "11px",
-      };
+        <div style={{ display: "grid", gridTemplateColumns: "repeat(2, 1fr)", gap: "10px" }}>
+          {Object.entries(asnafMap).map(([k, v]: any) => (
+            <StatCard key={k} title={k} value={format(v)} color="#10b981" />
+          ))}
+        </div>
+      </div>
 
-      // 🔹 ALIGNMENT
-      const tdRight: CSSProperties = {
-        textAlign: "right",
-        padding: "4px 6px",
-        border: "1px solid #e5e7eb",
-        fontSize: "11px"
-      };
+      <div
+        style={{
+          flex: 1,
+          background: "#fff",
+          padding: "15px",
+          borderRadius: "12px",
+          border: "1px solid #f1f5f9"
+        }}
+      >
+        <p style={{ fontSize: "11px", fontWeight: "bold", textAlign: "center" }}>
+          Prog vs Ops
+        </p>
 
-      const tdCenter: CSSProperties = {
-        ...tdStyle,
-        textAlign: "center",
-      };
+        <div style={{ width: "100%", height: "140px" }}>
+          <ResponsiveContainer width="100%" height="100%">
+            <PieChart>
+              <Pie
+                data={pieData}
+                dataKey="value"
+                cx="50%"
+                cy="50%"
+                innerRadius={30}
+                outerRadius={50}
+                label={(entry: any) => `${(entry.percent * 100).toFixed(0)}%`}
+              >
+                <Cell fill="#006837" />
+                <Cell fill="#f59e0b" />
+              </Pie>
+              <Legend wrapperStyle={{ fontSize: "10px" }} />
+            </PieChart>
+          </ResponsiveContainer>
+        </div>
+      </div>
+    </div>
 
-      // 🔹 INDENT HELPER (fix error paddingLeft)
-      const tdIndent = (left: number) => ({
-      ...tdStyle,
-      padding: `4px 6px 4px ${left}px`,
-    });
-
-      return (
+    {/* ================= TABLE ================= */}
+    <div style={{ width: "100%", overflowX: "auto" }}>
+      <div style={{ minWidth: "1100px" }}>
         <table
           style={{
             width: "100%",
             borderCollapse: "collapse",
-            tableLayout: "fixed",
-            border: "1px solid #cbd5e1", // outer border halus
+            fontSize: "11px"
           }}
         >
           <thead>
             <tr>
-              <th style={{ ...thStyle, textAlign: "center", width: "30%" }}>
-                Struktur
-              </th>
+              <th style={thStyle}>Akun DD</th>
               <th style={thStyle}>Anggaran</th>
               <th style={thStyle}>UM</th>
               <th style={thStyle}>Beban</th>
               <th style={thStyle}>Total</th>
               <th style={thStyle}>Saldo</th>
-              <th style={{ ...thStyle, textAlign: "center", width: "10%" }}>
-                %
-              </th>
+              <th style={{ ...thStyle, textAlign: "center" }}>%</th>
             </tr>
           </thead>
 
           <tbody>
-            {Object.entries(tree).map(([div, d]: any) => {
-              const serapanDiv = d.a > 0 ? (d.t / d.a) * 100 : 0;
+            {Object.entries(treeDD).map(([akunDD, d]: any) => {
+              const openDD = expandedDD === akunDD;
+              const serapanDD = d.a > 0 ? (d.t / d.a) * 100 : 0;
 
               return (
-                <React.Fragment key={div}>
+                <React.Fragment key={akunDD}>
                   {/* LEVEL 1 */}
-                  <tr style={{ background: "#f1f5f9", fontWeight: 700 }}>
-                    <td style={tdStyle}>{div}</td>
+                  <tr
+                    onClick={() => {
+                      setExpandedDD(openDD ? null : akunDD);
+                      setExpandedProg(null);
+                    }}
+                    style={{ background: "#f1f5f9", fontWeight: 700, cursor: "pointer" }}
+                  >
+                    <td style={tdStyle}>{openDD ? "▼" : "▶"} {akunDD}</td>
                     <td style={tdRight}>{format(d.a)}</td>
                     <td style={tdRight}>{format(d.um)}</td>
                     <td style={tdRight}>{format(d.b)}</td>
                     <td style={tdRight}>{format(d.t)}</td>
                     <td style={tdRight}>{format(d.a - d.t)}</td>
-                    <td style={tdCenter}>
-                      {serapanDiv.toFixed(1)}%
+                    <td style={{ ...tdCenter, color: serapanDD < 70 ? "#dc2626" : "#006837" }}>
+                      {serapanDD.toFixed(1)}%
                     </td>
                   </tr>
 
                   {/* LEVEL 2 */}
-                  {Object.entries(d.organs).map(([org, o]: any) => {
-                    const serapanOrg = o.a > 0 ? (o.t / o.a) * 100 : 0;
+                  {openDD &&
+                    Object.entries(d.programsDD).map(([prog, p]: any) => {
+                      const openProg = expandedProg === prog;
+                      const serapanProg = p.a > 0 ? (p.t / p.a) * 100 : 0;
 
-                    return (
-                      <React.Fragment key={org}>
-                        <tr
-                          {...rowHover("#ffffff", "#dcfce7")}
-                          style={{ fontWeight: 600 }}
-                        >
-                          <td style={tdIndent(20)}>📁 {org}</td>
-                          <td style={tdRight}>{format(o.a)}</td>
-                          <td style={tdRight}>{format(o.um)}</td>
-                          <td style={tdRight}>{format(o.b)}</td>
-                          <td style={tdRight}>{format(o.t)}</td>
-                          <td style={tdRight}>{format(o.a - o.t)}</td>
-                          <td style={tdCenter}>
-                            {serapanOrg.toFixed(1)}%
-                          </td>
-                        </tr>
+                      return (
+                        <React.Fragment key={prog}>
+                          <tr
+                            onClick={() => setExpandedProg(openProg ? null : prog)}
+                            style={{ cursor: "pointer" }}
+                          >
+                            <td style={{ ...tdStyle, paddingLeft: "20px" }}>
+                              {openProg ? "▼" : "▶"} {prog}
+                            </td>
+                            <td style={tdRight}>{format(p.a)}</td>
+                            <td style={tdRight}>{format(p.um)}</td>
+                            <td style={tdRight}>{format(p.b)}</td>
+                            <td style={tdRight}>{format(p.t)}</td>
+                            <td style={tdRight}>{format(p.a - p.t)}</td>
+                            <td style={tdCenter}>{serapanProg.toFixed(1)}%</td>
+                          </tr>
 
-                        {/* LEVEL 3 */}
-                        {Object.entries(o.subs).map(([sub, s]: any) => {
-                          const isOpen = expandedSub[sub];
-                          const serapanSub =
-                            s.a > 0 ? (s.t / s.a) * 100 : 0;
+                          {/* LEVEL 3 */}
+                          {openProg &&
+                            Object.entries(p.akunBudget).map(([akun, a]: any) => {
+                              const serapanAkun = a.a > 0 ? (a.t / a.a) * 100 : 0;
 
-                          return (
-                            <React.Fragment key={sub}>
-                              <tr
-                                onClick={() =>
-                                  setExpandedSub((prev) => ({
-                                    ...prev,
-                                    [sub]: !prev[sub],
-                                  }))
-                                }
-                                style={{
-                                  background: "#fafafa",
-                                  cursor: "pointer",
-                                }}
-                                onMouseEnter={(e) =>
-                                  (e.currentTarget.style.background =
-                                    "#dcfce7")
-                                }
-                                onMouseLeave={(e) =>
-                                  (e.currentTarget.style.background =
-                                    "#fafafa")
-                                }
-                              >
-                                <td style={tdIndent(32)}>
-                                  <span style={{ marginRight: "6px" }}>
-                                    {isOpen ? "▼" : "▶"}
-                                  </span>
-                                  {sub}
-                                </td>
-                                <td style={tdRight}>{format(s.a)}</td>
-                                <td style={tdRight}>{format(s.um)}</td>
-                                <td style={tdRight}>{format(s.b)}</td>
-                                <td style={tdRight}>{format(s.t)}</td>
-                                <td style={tdRight}>{format(s.a - s.t)}</td>
-                                <td style={tdCenter}>
-                                  {serapanSub.toFixed(1)}%
-                                </td>
-                              </tr>
-
-                              {/* LEVEL 4 */}
-                              {isOpen &&
-                                Object.entries(s.akuns).map(
-                                  ([akun, a]: any) => {
-                                    const serapanAkun =
-                                      a.a > 0
-                                        ? (a.t / a.a) * 100
-                                        : 0;
-
-                                    return (
-                                      <tr
-                                        key={akun}
-                                        {...rowHover(
-                                          "#ffffff",
-                                          "#dcfce7"
-                                        )}
-                                      >
-                                        <td style={tdIndent(52)}>
-                                          <span
-                                            style={{
-                                              marginRight: "6px",
-                                              color: "#9ca3af",
-                                            }}
-                                          >
-                                            └─
-                                          </span>
-                                          {akun}
-                                        </td>
-                                        <td style={tdRight}>
-                                          {format(a.a)}
-                                        </td>
-                                        <td style={tdRight}>
-                                          {format(a.um)}
-                                        </td>
-                                        <td style={tdRight}>
-                                          {format(a.b)}
-                                        </td>
-                                        <td style={tdRight}>
-                                          {format(a.t)}
-                                        </td>
-                                        <td style={tdRight}>
-                                          {format(a.a - a.t)}
-                                        </td>
-                                        <td style={tdCenter}>
-                                          {serapanAkun.toFixed(1)}%
-                                        </td>
-                                      </tr>
-                                    );
-                                  }
-                                )}
-                            </React.Fragment>
-                          );
-                        })}
-                      </React.Fragment>
-                    );
-                  })}
+                              return (
+                                <tr key={akun}>
+                                  <td style={{ ...tdStyle, paddingLeft: "40px" }}>• {akun}</td>
+                                  <td style={tdRight}>{format(a.a)}</td>
+                                  <td style={tdRight}>{format(a.um)}</td>
+                                  <td style={tdRight}>{format(a.b)}</td>
+                                  <td style={tdRight}>{format(a.t)}</td>
+                                  <td style={tdRight}>{format(a.a - a.t)}</td>
+                                  <td style={tdCenter}>{serapanAkun.toFixed(1)}%</td>
+                                </tr>
+                              );
+                            })}
+                        </React.Fragment>
+                      );
+                    })}
                 </React.Fragment>
               );
             })}
 
             {/* GRAND TOTAL */}
-            <tr
-              style={{
-                background: "#6c9b6f",
-                color: "#fff",
-                fontWeight: "bold",
-                borderTop: "2px solid #475569",
-              }}
-            >
-              <td style={{ ...tdStyle, padding: "10px 20px" }}>
-                GRAND TOTAL SELURUH DIVISI
-              </td>
+            <tr style={{ background: "#6c9b6f", color: "#fff", fontWeight: "bold" }}>
+              <td style={tdStyle}>GRAND TOTAL</td>
               <td style={tdRight}>{format(grandTotal.a)}</td>
               <td style={tdRight}>{format(grandTotal.um)}</td>
               <td style={tdRight}>{format(grandTotal.b)}</td>
               <td style={tdRight}>{format(grandTotal.t)}</td>
-              <td style={tdRight}>
-                {format(grandTotal.a - grandTotal.t)}
-              </td>
-              <td style={tdCenter}>
-                {totalSerapan.toFixed(1)}%
-              </td>
+              <td style={tdRight}>{format(grandTotal.a - grandTotal.t)}</td>
+              <td style={tdCenter}>{totalSerapan.toFixed(1)}%</td>
             </tr>
           </tbody>
         </table>
-      );
-    })()}
+      </div>
+    </div>
   </div>
 )}
 
@@ -1091,6 +1178,7 @@ const handlePrint = () => {
               </div>
             </div>
 
+            <div className="table-wrapper">
             <table style={{ width: "100%", borderCollapse: "collapse", fontSize: "11px" }}>
       <thead>
         <tr>
@@ -1113,16 +1201,25 @@ const handlePrint = () => {
             <React.Fragment key={akunDD}>
               
               {/* LEVEL 1: AKUN DD */}
-              <tr
-                onClick={() => {
-                  setExpandedDD(openDD ? null : akunDD);
-                  setExpandedProg(null);
-                }}
-                {...rowHover("#f1f5f9", "#95bba0", {
-                  cursor: "pointer",
-                  fontWeight: 700
-                })}
-              >
+             <tr
+              onClick={() => {
+                setExpandedDD(openDD ? null : akunDD);
+                setExpandedProg(null);
+              }}
+              style={{
+                background: "#f1f5f9",
+                cursor: "pointer",
+                fontWeight: 700,
+                transition: "0.2s",
+              }}
+              onMouseEnter={(e) => {
+                e.currentTarget.style.background = "#95bba0";
+              }}
+              onMouseLeave={(e) => {
+                e.currentTarget.style.background = "#f1f5f9";
+              }}
+            >
+            
                 <td style={{ ...tdStyle }}>
                   {openDD ? "▼" : "▶"} {akunDD}
                 </td>
@@ -1146,9 +1243,18 @@ const handlePrint = () => {
                     <React.Fragment key={prog}>
                       <tr
                         onClick={() => setExpandedProg(openProg ? null : prog)}
-                        {...rowHover("#ffffff", "#95bba0", {
-                          cursor: "pointer"
-                        })}
+                        style={{
+                          background: "#ffffff",
+                          fontWeight: 700,
+                          cursor: "pointer",
+                          transition: "0.2s",
+                        }}
+                        onMouseEnter={(e) => {
+                          e.currentTarget.style.background = "#95bba0";
+                        }}
+                        onMouseLeave={(e) => {
+                          e.currentTarget.style.background = "#ffffff";
+                        }}
                       >
                         <td style={{ ...tdStyle, paddingLeft: "20px" }}>
                           {openProg ? "▼" : "▶"} {prog}
@@ -1204,6 +1310,7 @@ const handlePrint = () => {
           </tr>
       </tbody>
     </table>
+  </div>
   </div>
   )}
   </div>
