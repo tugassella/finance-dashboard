@@ -488,15 +488,26 @@ const handlePrint = () => {
   }, 300); // 🔥 kasih waktu render ulang
 };
 
-const stickyCol = (left: number): CSSProperties => ({
-  position: "sticky",
-  left,
-  background: "#f9fafb",
-  zIndex: 3,
-  borderRight: "1px solid #e2e8f0"
-});
+const isMobile = window.innerWidth <= 768;
+const stickyCol = (left: number, enabled: boolean = true): CSSProperties => {
+  if (!enabled || isMobile) {
+    return {
+      position: "static",
+      left: "auto",
+      background: "#f9fafb",
+      zIndex: "auto",
+      borderRight: "1px solid #e2e8f0"
+    };
+  }
 
-
+  return {
+    position: "sticky",
+    left,
+    background: "#f9fafb",
+    zIndex: 3,
+    borderRight: "1px solid #e2e8f0"
+  };
+};
 
   return (
     <div
@@ -1444,9 +1455,10 @@ const stickyCol = (left: number): CSSProperties => ({
         <tr
           style={{
             background: THEME.primary,
-            color: "#fff",
-            fontWeight: 800,
-            borderTop: "2px solid #334155"
+            color: "#fff", 
+            fontWeight: "800", 
+            borderTop: "2px solid #cbd5e1",
+            fontSize: "12px"
           }}
         >
           <td style={{ ...tdStyle, fontWeight: 600 }}>
@@ -1486,14 +1498,22 @@ const stickyCol = (left: number): CSSProperties => ({
     </div>
 
     {/* ================= KPI TAHUNAN ================= */}
-    <div
-      style={{
-        display: "flex",
-        flexWrap: "wrap",
-        gap: "10px",
-        marginBottom: "25px"
-      }}
-    >
+      <div
+        className="kpi-scroll"
+        style={{
+          overflowX: "auto",
+          WebkitOverflowScrolling: "touch",
+          paddingBottom: "8px"
+          }}
+      >
+      <div
+        style={{
+          display: "flex",
+          gap: "10px",
+          minWidth: "max-content",
+          paddingRight: "10px"
+          }}
+      >
       <StatCard title="Anggaran Tahunan" value={format(totalAnggaranTahunan)} />
       <StatCard title="Transaksi Tahunan" value={format(totalTransaksiTahunan)} color="#0284c7" />
       <StatCard
@@ -1663,7 +1683,10 @@ const stickyCol = (left: number): CSSProperties => ({
 
             {/* GRAND TOTAL */}
             <tr style={{ background: THEME.primary,
-            color: "#fff", fontWeight: "bold" }}>
+                          color: "#fff", 
+                          fontWeight: "800", 
+                          borderTop: "2px solid #cbd5e1",
+                          fontSize: "12px" }}>
               <td style={tdStyle}>GRAND TOTAL</td>
               <td style={tdRight}>{format(grandTotal.a)}</td>
               <td style={tdRight}>{format(grandTotal.um)}</td>
@@ -1677,8 +1700,7 @@ const stickyCol = (left: number): CSSProperties => ({
       </div>
     </div>
   </div>
+</div>
 )}
-      </div>
-    </div>
-  );
-}
+</div>
+</div>)}
