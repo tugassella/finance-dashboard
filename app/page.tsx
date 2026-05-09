@@ -33,13 +33,12 @@ const StatCard = ({ title, value, color = "#111" }: { title: string, value: stri
       background: THEME.bg,
       padding: "18px",
       borderRadius: "12px",
-      border: "1px solid ${THEME.border}",
+      border: `1px solid ${THEME.border}`,
       boxShadow: THEME.shadow,
       display: "flex",
       flexDirection: "column",
       gap: "8px",
       minWidth: "180px",
-      minHeight: "100vh",
       flex: 1,
       fontFamily: "system-ui,-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif",
       color: THEME.text
@@ -633,24 +632,26 @@ const stickyCol = (left: number): CSSProperties => ({
       }
         /* tab tetap */
         .tab-btn {
-          padding: 10px 18px;
-          font-weight: 600;
-          border-radius: 10px 10px 0 0;
-          cursor: pointer;
-          border: none;
-          font-size: 13px;
-          transition: all 0.2s ease;
-        }
-
-        .tab-active {
-          background: #006837;
-          color: white;
-        }
+        padding: 10px 18px;
+        font-weight: 600;
+        border-radius: 10px 10px 0 0;
+        cursor: pointer;
+        border: 1px solid transparent;
+        font-size: 13px;
+        transition: all 0.2s ease;
+      }
 
         .tab-inactive {
-          background: #edf7f1;
-          color: #006837;
-        }
+        background: transparent;
+        color: #64748b;
+        border: 1px solid transparent;
+      }
+
+      .tab-inactive:hover {
+        background: #edf7f1;
+        color: #006837;
+        border: 1px solid #dbe4dc;
+      }
 
           /* =========================
             SCROLL FIX
