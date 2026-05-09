@@ -38,8 +38,8 @@ const StatCard = ({ title, value, color = "#111" }: { title: string, value: stri
       display: "flex",
       flexDirection: "column",
       gap: "8px",
-      minWidth: "180px",
-      flex: 1,
+      minWidth: "140px",
+      flex: "100%",
       fontFamily: "system-ui,-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif",
       color: THEME.text
     }}>
@@ -668,6 +668,63 @@ const stickyCol = (left: number): CSSProperties => ({
         border: 1px solid #dbe4dc;
       }
 
+      .table-hover-row {
+        transition: background 0.15s ease;
+      }
+
+      .table-hover-row:hover {
+        background: #eefaf3 !important;
+      }
+
+      .table-row {
+        transition: background 0.15s ease, transform 0.1s ease;
+      }
+      
+      .table-row td {
+        background: transparent;
+      }
+
+      .table-row:hover {
+        background: #e6f4ea;
+        transition: 0.15s ease;
+      }
+
+      :root {
+        --primary-hover: #e6f4ea;
+      }
+      
+      .card:hover {
+        background: #10b981;
+      }
+
+      .kpi-wrapper {
+        display: flex;
+        gap: 10px;
+        flex-wrap: wrap; /* ini kunci */
+      }
+
+      /* mobile */
+      @media (max-width: 768px) {
+        .kpi-wrapper {
+          flex-direction: column;
+          gap: 8px;
+        }
+
+        .kpi-wrapper > div {
+          width: 100%;
+        }
+      
+        .stat-card {
+          flex: 1;
+          min-width: 160px;
+        }
+
+        @media (max-width: 768px) {
+          .stat-card {
+            width: 100%;
+            min-width: 100%;
+          }
+        }
           /* =========================
             SCROLL FIX
           ========================= */
@@ -883,14 +940,7 @@ const stickyCol = (left: number): CSSProperties => ({
                   paddingBottom: "8px"
                 }}
               >
-                <div
-                  style={{
-                    display: "flex",
-                    gap: "10px",
-                    minWidth: "max-content",
-                    paddingRight: "10px"
-                  }}
-                >
+            <div className="kpi-wrapper">
               <StatCard title="Anggaran" value={format(grandTotal.a)} color="#0284c7" />
               <StatCard title="UM" value={format(grandTotal.um)} color="#0284c7" />
               <StatCard title="Beban" value={format(grandTotal.b)} color="#0284c7" />
@@ -1180,12 +1230,7 @@ const stickyCol = (left: number): CSSProperties => ({
                           background: THEME.primarySoft,
                           transition: "0.2s"
                         }}
-                        onMouseEnter={(e) => {
-                          e.currentTarget.style.background = THEME.primaryHover;
-                        }}
-                        onMouseLeave={(e) => {
-                          e.currentTarget.style.background = "#transparent";
-                        }}>
+                        >
                         <td style={{ padding: "6px" }}>{isOpen ? "▼" : "▶"} {div}</td>
                         <td style={{ textAlign: "right" }}>{format(d.a)}</td>
                         <td style={{ textAlign: "right" }}>{format(d.um)}</td>
@@ -1204,12 +1249,6 @@ const stickyCol = (left: number): CSSProperties => ({
                              background: "#ffffff",
                              borderTop: "1px solid #eee",
                              transition: "0.2s"
-                            }}
-                            onMouseEnter={(e) => {
-                             e.currentTarget.style.background = THEME.primaryHover; // beda dikit biar hierarki keliatan
-                            }}
-                            onMouseLeave={(e) => {
-                             e.currentTarget.style.background = "#dde7e2";
                             }}
                           >
                             <td style={{ paddingLeft: "25px" }}>↳ {org}</td>
@@ -1297,12 +1336,7 @@ const stickyCol = (left: number): CSSProperties => ({
                   fontSize: "12px",
                   cursor: "pointer"
                 }}
-                onMouseEnter={(e) => {
-                  e.currentTarget.style.background = THEME.primaryHover;
-                }}
-                onMouseLeave={(e) => {
-                  e.currentTarget.style.background = "#dde7e2";
-                }}
+                
               >
                 <td style={tdStyle}>
                   {openDiv ? "▼" : "▶"} {div}
@@ -1327,12 +1361,7 @@ const stickyCol = (left: number): CSSProperties => ({
 
                       <tr
                         style={{ background: "#ffffff", fontWeight: 500, color: "#334155", cursor: "default" }}
-                        onMouseEnter={(e) => {
-                          e.currentTarget.style.background = THEME.primaryHover;
-                        }}
-                        onMouseLeave={(e) => {
-                          e.currentTarget.style.background = "#dde7e2";
-                        }}
+                        
                       >
                         <td style={{ ...tdStyle, paddingLeft: "20px" }}>
                           ↳ {org}
@@ -1365,8 +1394,7 @@ const stickyCol = (left: number): CSSProperties => ({
                               cursor: "pointer",
                               fontWeight: 500
                             }}
-                            onMouseEnter={(e) => (e.currentTarget.style.background = THEME.primaryHover)}
-                            onMouseLeave={(e) => (e.currentTarget.style.background = "#dde7e2")}>
+                           >
                           
                             <td style={{ ...tdStyle, paddingLeft: "40px" }}>
                               {expandedSub[sub] ? "▼" : "▶"} {sub}
@@ -1389,12 +1417,7 @@ const stickyCol = (left: number): CSSProperties => ({
                                     style={{
                                       background: "#ffffff", fontWeight: 400, color: THEME.textSoft, cursor: "default"
                                     }}
-                                    onMouseEnter={(e) =>
-                                      (e.currentTarget.style.background = THEME.primaryHover)
-                                    }
-                                    onMouseLeave={(e) =>
-                                      (e.currentTarget.style.background = "#dde7e2")
-                                    }
+                                    
                                   >
                                     <td style={{ ...tdStyle, paddingLeft: "60px", color: THEME.textSoft }}>
                                       ▸ {akun}
@@ -1452,14 +1475,8 @@ const stickyCol = (left: number): CSSProperties => ({
     </h3>
 
     {/* ================= KPI ================= */}
-    <div
-      style={{
-        display: "flex",
-        gap: "10px",
-        minWidth: "max-content",
-        marginBottom: "15px"
-      }}
-    >
+    <div className="kpi-wrapper">
+
       <StatCard title="Anggaran" value={format(grandTotal.a)} />
       <StatCard title="UM" value={format(grandTotal.um)} color="#0284c7" />
       <StatCard title="Beban" value={format(grandTotal.b)} color="#f59e0b" />
