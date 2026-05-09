@@ -746,31 +746,79 @@ const stickyCol = (left: number): CSSProperties => ({
             alignItems: "center" 
           }}
         >
-          <div>
-            <h1 style={{ color: "#006837", margin: 0, fontSize: "20px" }}>Executive Financial Dashboard</h1>
-            <p style={{ color: THEME.textSoft, margin: 0, fontSize: "11px" }}>Great Edunesia • {tahun} • {jenisDana}</p>
-          </div>
+         <div>
+          <h1 style={{ color: "#006837", margin: 0, fontSize: "20px" }}>
+            Executive Financial Dashboard
+          </h1>
+
+          <p
+            style={{
+              color: THEME.textSoft,
+              margin: 0,
+              fontSize: "11px"
+            }}
+          >
+            Great Edunesia • {tahun} • {jenisDana}
+          </p>
+        </div>
+
+        <div
+          className="no-print"
+          style={{
+            display: "flex",
+            gap: "8px",
+            alignItems: "center"
+          }}
+        >
+          {/* PRINT */}
           <button
-            className="no-print"
+            onClick={() => window.print()}
+            title="Print"
+            style={{
+              width: "38px",
+              height: "38px",
+              borderRadius: "10px",
+              border: "none",
+              background: "#f59e0b",
+              color: "#fff",
+              cursor: "pointer",
+              fontSize: "15px",
+              display: "flex",
+              alignItems: "center",
+              justifyContent: "center",
+              transition: "0.2s"
+            }}
+          >
+            🖨
+          </button>
+
+          {/* LOGOUT */}
+          <button
             onClick={() => {
               localStorage.removeItem("isLoggedIn");
               window.location.href = "/login";
             }}
+            title="Logout"
             style={{
-              padding: "10px 20px",
+              width: "38px",
+              height: "38px",
+              borderRadius: "10px",
+              border: "none",
               background: "#dc2626",
               color: "#fff",
-              border: "none",
-              borderRadius: "6px",
               cursor: "pointer",
-              fontWeight: "bold"
+              fontSize: "15px",
+              display: "flex",
+              alignItems: "center",
+              justifyContent: "center",
+              transition: "0.2s"
             }}
           >
-            Logout
+            ↪
           </button>
         </div>
       </div>
-
+    </div>
       <div className="no-print" style={{ background: "#fff", padding: "15px", borderRadius: "12px", boxShadow: "0 2px 4px rgba(0,0,0,0.05)", marginBottom: "20px" }}>
         <div 
           className="filter-wrapper"
