@@ -27,7 +27,7 @@ const THEME = {
   danger: "#dc2626",
   shadow: "0 1px 3px rgba(0,0,0,0.05)"
 };
-
+const COLORS = ["#10b981", "#3b82f6"]; // prog vs ops
 const StatCard = ({ title, value, color = "#111" }: { title: string, value: string, color?: string }) => (
   <div style={{
       background: THEME.bg,
@@ -37,9 +37,9 @@ const StatCard = ({ title, value, color = "#111" }: { title: string, value: stri
       boxShadow: THEME.shadow,
       display: "flex",
       flexDirection: "column",
-      gap: "8px",
-      minWidth: "140px",
-      flex: "100%",
+      gap: "4px",
+      minWidth: "120px",
+      flex: "1", // 🟢 UBAH DARI "100%" KE "1"
       fontFamily: "system-ui,-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif",
       color: THEME.text
     }}>
@@ -488,9 +488,8 @@ const handlePrint = () => {
   }, 300); // 🔥 kasih waktu render ulang
 };
 
-const isMobile = window.innerWidth <= 768;
 const stickyCol = (left: number, enabled: boolean = true): CSSProperties => {
-  if (!enabled || isMobile) {
+  if (!enabled) {
     return {
       position: "static",
       left: "auto",
@@ -644,10 +643,29 @@ const stickyCol = (left: number, enabled: boolean = true): CSSProperties => {
           width: max-content;
         }
 
-        table {
-          min-width: 900px;
+        .table-wrapper-summary {
+          width: 100%;
+          overflow-x: auto;
+          -webkit-overflow-scrolling: touch;
+          background: #fff;
+          border-radius: 8px;
         }
 
+        .table-wrapper-detail {
+          width: 100%;
+          overflow-x: auto;
+          -webkit-overflow-scrolling: touch;
+          background: #fff;
+          border-radius: 8px;
+        }
+
+        .table-wrapper-report {
+          width: 100%;
+          overflow-x: auto;
+          -webkit-overflow-scrolling: touch;
+          background: #fff;
+          border-radius: 8px;
+        }
         .dashboard-content {
           padding: 12px !important;
         }
@@ -736,6 +754,13 @@ const stickyCol = (left: number, enabled: boolean = true): CSSProperties => {
             min-width: 100%;
           }
         }
+        
+        .kpi-container {
+          display: flex;
+          gap: 12px;
+          flex-wrap: nowrap;   /* penting: jangan turun ke bawah */
+          overflow-x: auto;    /* kalau sempit, bisa scroll samping */
+        }
           /* =========================
             SCROLL FIX
           ========================= */
@@ -788,6 +813,82 @@ const stickyCol = (left: number, enabled: boolean = true): CSSProperties => {
             font-size: 12px;
             font-weight: 500;
           }
+          
+          .asnaf-wrapper {
+            display: flex;
+            gap: 20px;
+            margin-bottom: 30px;
+            flex-wrap: nowrap;
+            align-items: flex-start;
+          }
+
+          /* PIE */
+          .asnaf-left {
+            flex: 1;
+            min-width: 280px;
+          }
+
+          /* KPI / GRID */
+          .asnaf-right {
+            flex: 2;
+            min-width: 300px;
+          }
+
+          .asnaf-title {
+            font-size: 11px;
+            font-weight: bold;
+            margin-bottom: 8px;
+          }
+
+          /* GRID CARD */
+          .asnaf-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(140px, 1fr));
+            gap: 10px;
+          }
+
+          /* MOBILE RESPONSIVE */
+          @media (max-width: 768px) {
+            .asnaf-wrapper {
+              flex-direction: column;
+            }
+
+            .asnaf-left,
+            .asnaf-right {
+              width: 100%;
+            }
+          }
+            /* =========================
+              FIXED KPI LAYOUT
+            ========================= */
+            .genesis-kpi {
+              display: flex;
+              gap: 12px;
+              flex-direction: row; /* Paksa horizontal di desktop */
+              flex-wrap: nowrap;   /* Jangan turun di desktop */
+              overflow-x: auto;    /* Bisa scroll jika layar tanggung */
+              margin-bottom: 20px;
+            }
+
+            .genesis-kpi > div {
+              flex: 1;             /* Biar lebar kartu sama rata */
+              min-width: 150px;    /* Batas minimum agar teks tidak kepotong */
+            }
+
+            /* RESPONSIVE: Hanya aktif di layar HP */
+            @media (max-width: 768px) {
+              .genesis-kpi {
+                flex-direction: column; /* Menurun di mobile */
+                flex-wrap: nowrap;
+                overflow-x: hidden;
+              }
+
+              .genesis-kpi > div {
+                width: 100%;       /* Full width di mobile */
+                min-width: 100%;
+                flex: none;
+              }
+            }
       `}</style>
       
       {showUMModal && (
@@ -935,381 +1036,180 @@ const stickyCol = (left: number, enabled: boolean = true): CSSProperties => {
 
       <div className="dashboard-content" style={{ background: "#fff", padding: "20px", borderRadius: "0 12px 12px 12px", boxShadow: "0 4px 6px rgba(0,0,0,0.05)" }}>
         
-        {activeTab === "summary" && (
-          <div>
-            {Object.keys(agingUMList).length > 0 && (
-              <div className="warning-um no-print" onClick={() => setShowUMModal(true)} style={{ background: "#fef2f2", padding: "12px", borderRadius: "8px", borderLeft: "4px solid #ef4444", marginBottom: "15px", cursor: "pointer" }}>
-                <h4 style={{ margin: 0, color: "#b91c1c", fontSize: "12px" }}>⚠️ {Object.keys(agingUMList).length} Sub Program memiliki UM Menggantung {">"} 1 Bulan. Klik untuk detail.</h4>
-              </div>
-            )}
+       {activeTab === "summary" && (
+  <div className="tab-content-wrapper">
+    {/* 1. WARNING SECTION */}
+    {Object.keys(agingUMList).length > 0 && (
+      <div
+        className="warning-um no-print"
+        onClick={() => setShowUMModal(true)}
+        style={{
+          background: "#fef2f2",
+          padding: "12px",
+          borderRadius: "8px",
+          borderLeft: "4px solid #ef4444",
+          marginBottom: "15px",
+          cursor: "pointer",
+        }}
+      >
+        <h4 style={{ margin: 0, color: "#b91c1c", fontSize: "12px" }}>
+          ⚠️ {Object.keys(agingUMList).length} Sub Program memiliki UM Menggantung {">"} 1 Bulan
+        </h4>
+      </div>
+    )}
 
-            <div
-                className="kpi-scroll"
-                style={{
-                  overflowX: "auto",
-                  WebkitOverflowScrolling: "touch",
-                  paddingBottom: "8px"
-                }}
-              >
-            <div className="kpi-wrapper">
-              <StatCard title="Anggaran" value={format(grandTotal.a)} color="#0284c7" />
-              <StatCard title="UM" value={format(grandTotal.um)} color="#0284c7" />
-              <StatCard title="Beban" value={format(grandTotal.b)} color="#0284c7" />
-              <StatCard title="Total Trx" value={format(grandTotal.t)} color="#0284c7" />
-              <StatCard title="Saldo" value={format(grandTotal.a - grandTotal.t)} color="#0284c7" />
-              <StatCard title="Serapan" value={getSerapan(grandTotal.t, grandTotal.a)} color="#0284c7" />
-              </div>
-            </div> 
+    {/* 2. KPI SECTION (KOTAK-KOTAK ATAS) */}
+    <div className="genesis-kpi" style={{ display: "flex", gap: "10px", flexWrap: "wrap", marginBottom: "20px" }}>
+      <StatCard title="Anggaran" value={format(grandTotal.a)} color="#0284c7" />
+      <StatCard title="UM" value={format(grandTotal.um)} color="#0284c7" />
+      <StatCard title="Beban" value={format(grandTotal.b)} color="#0284c7" />
+      <StatCard title="Total Trx" value={format(grandTotal.t)} color="#0284c7" />
+      <StatCard title="Saldo" value={format(grandTotal.a - grandTotal.t)} color="#0284c7" />
+      <StatCard title="Serapan" value={getSerapan(grandTotal.t, grandTotal.a)} color="#0284c7" />
+    </div>
 
-            <div
-              className="kpi-scroll"
-              style={{
-                overflowX: "auto",
-                WebkitOverflowScrolling: "touch",
-                paddingBottom: "8px"
-              }}
+    <div className="genesis-kpi" style={{ display: "flex", gap: "10px", flexWrap: "wrap", marginBottom: "20px" }}>
+      <StatCard title="Anggaran Tahunan" value={format(totalAnggaranTahunan)} />
+      <StatCard title={`Transaksi YTD (s.d Bln ${maxBulan})`} value={format(totalTransaksiTahunan)} />
+      <StatCard
+        title="Saldo YTD"
+        value={format(totalSaldoTahunan)}
+        color={totalSaldoTahunan < 0 ? "#dc2626" : "#111"}
+      />
+      <StatCard
+        title="Serapan YTD"
+        value={`${serapanTahunan.toFixed(1)}%`}
+        color={serapanTahunan > 100 ? "#dc2626" : serapanTahunan < 70 ? "#f59e0b" : "#006837"}
+      />
+    </div>
+
+    {/* 3. CHARTS SECTION (BAR & PIE) */}
+    <div className="charts-container" style={{ display: "flex", gap: "15px", flexWrap: "wrap", marginBottom: "20px" }}>
+      {/* BAR CHART */}
+      <div className="chart-box" style={{ flex: 2, minWidth: "320px", background: "#fff", padding: "15px", borderRadius: "8px", border: "1px solid #e2e8f0" }}>
+        <h4 style={{ fontSize: "11px", textAlign: "center", marginBottom: "10px" }}>Serapan per Divisi</h4>
+        <ResponsiveContainer width="100%" height={300}>
+          <BarChart data={Object.entries(tree).map(([name, d]: any) => ({ name, a: d.a, t: d.t }))}>
+            <XAxis dataKey="name" tick={{ fontSize: 10 }} />
+            <YAxis tick={{ fontSize: 10 }} />
+            <Tooltip formatter={(v: any) => format(v)} />
+            <Bar dataKey="a" fill="#006837" name="Anggaran" />
+            <Bar dataKey="t" fill="#f59e0b" name="Realisasi" />
+          </BarChart>
+        </ResponsiveContainer>
+      </div>
+
+      {/* PIE CHART */}
+      <div className="chart-box" style={{ flex: 1, minWidth: "260px", background: "#fff", padding: "15px", borderRadius: "8px", border: "1px solid #e2e8f0" }}>
+        <h4 style={{ fontSize: "11px", textAlign: "center", marginBottom: "10px" }}>Prog vs Ops</h4>
+        <ResponsiveContainer width="100%" height={300}>
+          <PieChart>
+            <Pie
+              data={pieData}
+              dataKey="value"
+              cx="50%"
+              cy="50%"
+              innerRadius={40}
+              outerRadius={70}
+              label={(e: any) => `${(e.percent * 100).toFixed(0)}%`}
             >
-              <div
-                style={{
-                  display: "flex",
-                  gap: "10px",
-                  minWidth: "max-content",
-                  paddingRight: "10px"
-                }}
-              >
-              <StatCard title="Anggaran Tahunan" value={format(totalAnggaranTahunan)} />
-              <StatCard title={`Transaksi YTD (s.d Bln ${maxBulan})`} value={format(totalTransaksiTahunan)} />
-              <StatCard title="Saldo YTD" value={format(totalSaldoTahunan)} color={totalSaldoTahunan < 0 ? "#dc2626" : "#111"} />
-              <StatCard title="Serapan YTD" value={`${serapanTahunan.toFixed(1)}%`} color={serapanTahunan > 100 ? "#dc2626" : serapanTahunan < 70 ? "#f59e0b" : "#006837"} />
-              </div>
-            </div>
+              <Cell fill="#006837" />
+              <Cell fill="#f59e0b" />
+            </Pie>
+            <Legend iconSize={10} wrapperStyle={{ fontSize: "10px" }} />
+          </PieChart>
+        </ResponsiveContainer>
+      </div>
+    </div>
 
-            <div className="charts-scroll">
-              <div
-                style={{
-                  display: "flex",
-                  gap: "15px",
-                  width: "100%",
-                  flexWrap: "wrap"
-                }}
-              >
+    {/* 4. TREND CHART SECTION */}
+    <div className="chart-box trend-chart" style={{ background: "#fff", padding: "15px", borderRadius: "8px", border: "1px solid #e2e8f0", marginBottom: "20px" }}>
+      <h4 style={{ fontSize: "11px", textAlign: "center", marginBottom: "15px" }}>Trend Anggaran vs Realisasi Bulanan</h4>
+      <ResponsiveContainer width="100%" height={300}>
+        <ComposedChart data={trendBulanan}>
+          <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="#f1f5f9" />
+          <XAxis dataKey="name" tick={{ fontSize: 10 }} />
+          <YAxis tick={{ fontSize: 10 }} />
+          <Tooltip formatter={(v: any) => format(v)} />
+          <Legend wrapperStyle={{ fontSize: "10px" }} />
+          <Area type="monotone" dataKey="realisasi" stroke="#f59e0b" fill="#fef3c7" name="Realisasi" />
+          <Bar dataKey="anggaran" barSize={20} fill="#006837" name="Anggaran" />
+        </ComposedChart>
+      </ResponsiveContainer>
+    </div>
 
-                {/* BAR CHART */}
-                <div
-                  className="chart-box"
-                  style={{
-                    flex: 2,
-                    minWidth: "320px",
-                    border: "1px solid #e2e8f0",
-                    borderRadius: "8px",
-                    padding: "10px"
-                  }}
+    {/* 5. TABLE SUMMARY SECTION */}
+    <div className="table-wrapper-summary">
+      <table style={{ width: "100%", minWidth: "900px", borderCollapse: "collapse", fontSize: "11px" }}>
+        <thead>
+          <tr style={{ background: "#f8fafc", borderBottom: "2px solid #e2e8f0" }}>
+            <th style={{ ...thStickyStyle, textAlign: "left", padding: "12px" }}>Struktur</th>
+            <th style={thStickyStyle}>Anggaran</th>
+            <th style={thStickyStyle}>UM</th>
+            <th style={thStickyStyle}>Beban</th>
+            <th style={thStickyStyle}>Total</th>
+            <th style={thStickyStyle}>Saldo</th>
+            <th style={{ ...thStickyStyle, textAlign: "center" }}>%</th>
+          </tr>
+        </thead>
+        <tbody>
+          {/* LOOPING DATA DIVISI */}
+          {Object.entries(tree).map(([div, d]: any) => {
+            const isExpanded = expandedDiv === div;
+            const serapanDiv = d.a > 0 ? (d.t / d.a) * 100 : 0;
+
+            return (
+              <React.Fragment key={div}>
+                {/* BARIS DIVISI */}
+                <tr
+                  onClick={() => setExpandedDiv(isExpanded ? null : div)}
+                  style={{ background: "#f1f5f9", fontWeight: 800, cursor: "pointer", borderBottom: "1px solid #e2e8f0" }}
                 >
-                  <h4 style={{ fontSize: "11px", textAlign: "center", marginBottom: "10px" }}>
-                    Serapan per Divisi
-                  </h4>
-
-                  <div style={{ width: "100%", height: "300px" }}>
-                    <ResponsiveContainer width="100%" height="100%">
-                      <BarChart
-                        data={Object.entries(tree).map(([name, d]: any) => ({
-                          name,
-                          a: d.a,
-                          t: d.t
-                        }))}
-                        margin={{ top: 5, right: 20, left: 10, bottom: 45 }}
-                      >
-                        <XAxis dataKey="name" tick={{ fontSize: 9 }} />
-                        <YAxis tick={{ fontSize: 9 }} />
-                        <Tooltip formatter={(v: any) => format(v)} />
-                        <Legend wrapperStyle={{ fontSize: "10px" }} />
-                        <Bar dataKey="a" fill="#006837" />
-                        <Bar dataKey="t" fill="#f59e0b" />
-                      </BarChart>
-                    </ResponsiveContainer>
-                  </div>
-                </div>
-
-                {/* PIE CHART */}
-                <div
-                  className="chart-box"
-                  style={{
-                    flex: 1,
-                    minWidth: "260px",
-                    border: "1px solid #e2e8f0",
-                    borderRadius: "8px",
-                    padding: "10px"
-                  }}
-                >
-                  <h4 style={{ fontSize: "11px", textAlign: "center", marginBottom: "10px" }}>
-                    Prog vs Ops
-                  </h4>
-
-                  <div style={{ width: "100%", height: "300px" }}>
-                    <ResponsiveContainer width="100%" height="100%">
-                      <PieChart>
-                        <Pie
-                          data={pieData}
-                          dataKey="value"
-                          cx="50%"
-                          cy="50%"
-                          innerRadius={40}
-                          outerRadius={70}
-                          label={(e: any) => `${(e.percent * 100).toFixed(0)}%`}
-                        >
-                          <Cell fill="#006837" />
-                          <Cell fill="#f59e0b" />
-                        </Pie>
-                        <Legend wrapperStyle={{ fontSize: "10px" }} />
-                      </PieChart>
-                    </ResponsiveContainer>
-                  </div>
-                </div>
-              </div>
-            </div>
-            
-            {/* ✅ TARUH DI SINI */}
-            {activeTab === "summary" && (
-            <div
-              className="chart-box trend-chart"
-              style={{
-                background: "#fff",
-                border: "1px solid #e2e8f0",
-                borderRadius: "12px",
-                padding: "14px",
-                marginBottom: "16px",
-                boxShadow: "0 1px 3px rgba(0,0,0,0.05)"
-              }}
-            >
-              {/* ================= HEADER (KPI STYLE) ================= */}
-              <div
-                style={{
-                  display: "flex",
-                  flexDirection: "column",
-                  gap: "6px",
-                  marginBottom: "12px"
-                }}
-              >
-                <h4
-                  style={{
-                    fontSize: "14px",
-                    fontWeight: 700,
-                    color: THEME.text,
-                    margin: 0
-                  }}
-                >
-                  Tren Bulanan: Budget vs Actual
-                </h4>
-
-                <div
-                  style={{
-                    fontSize: "10px",
-                    color: "#006837",
-                    display: "flex",
-                    gap: "12px",
-                    flexWrap: "wrap"
-                  }}
-                >
-                  <span>● Anggaran</span>
-                  <span>● Realisasi (UM+Beban)</span>
-                </div>
-              </div>
-
-              {/* ================= CHART ================= */}
-              <div
-                className="chart-container trend-container"
-                style={{
-                  width: "100%",
-                  height: "320px"
-                }}
-              >
-                <ResponsiveContainer key={printKey} width="100%" height="100%">
-                  <ComposedChart
-                    data={trendBulanan}
-                    margin={{ top: 10, right: 10, left: 10, bottom: 0 }}
-                    barCategoryGap="60%"
-                  >
-                    <CartesianGrid
-                      strokeDasharray="3 3"
-                      vertical={false}
-                      stroke="#d7e8dd"
-                    />
-
-                    <XAxis
-                      dataKey="bulan"
-                      scale="point"
-                      padding={{ left: 10, right: 10 }}
-                      axisLine={false}
-                      tickLine={false}
-                      tick={{ fontSize: 10, fill: "#006837" }}
-                      tickFormatter={(b) =>
-                        ["Jan","Feb","Mar","Apr","Mei","Jun","Jul","Agu","Sep","Okt","Nov","Des"][b - 1]
-                      }
-                    />
-
-                    <YAxis
-                      axisLine={false}
-                      tickLine={false}
-                      tick={{ fontSize: 10, fill: "#006837" }}
-                      tickFormatter={(value) =>
-                        `${(value / 1000000).toFixed(0)}M`
-                      }
-                    />
-
-                    <Tooltip
-                      contentStyle={{
-                        borderRadius: "8px",
-                        border: "none",
-                        boxShadow: "0 4px 12px rgba(0,0,0,0.1)"
-                      }}
-                      formatter={(v: any) => format(v)}
-                    />
-
-                    <Legend
-                      verticalAlign="top"
-                      align="right"
-                      height={30}
-                      iconType="circle"
-                      wrapperStyle={{ fontSize: "10px" }}
-                    />
-
-                    {/* ================= AREA (ANGGARAN) ================= */}
-                    <Area
-                      type="monotone"
-                      dataKey="anggaran"
-                      fill="#f1f5f9"
-                      stroke="#94a3b8"
-                      name="Target Anggaran"
-                      strokeWidth={2}
-                      dot={isPrint ? false : { r: 2 }}
-                      activeDot={isPrint ? false : { r: 3 }}
-                    />
-
-                    {/* ================= BAR (REALISASI) ================= */}
-                    <Bar
-                      dataKey="realisasi"
-                      fill="#f59e0b"
-                      name="Realisasi Actual"
-                      radius={[2, 2, 0, 0]}
-                    />
-                  </ComposedChart>
-                </ResponsiveContainer>
-              </div>
-            </div>
-          )}
-          <div
-            className="table-wrapper"
-            style={{
-              width: "100%",
-              overflowX: "auto",
-              WebkitOverflowScrolling: "touch",
-            }}
-            >
-            <table
-              style={{
-                borderCollapse: "collapse",
-                width: "100%",
-                minWidth: "800px",
-                fontSize: "11px"
-              }}
-            >
-              <thead>
-                <tr>
-                  <th style={{ ...thStyle, textAlign: "center" }}>
-                    Struktur Divisi / Organ
-                  </th>
-                  <th style={thStyle}>Anggaran</th>
-                  <th style={thStyle}>UM</th>
-                  <th style={thStyle}>Beban</th>
-                  <th style={thStyle}>Total Transaksi</th>
-                  <th style={thStyle}>Saldo</th>
-                  <th style={{ ...thStyle, textAlign: "center" }}>%</th>
+                  <td style={{ ...tdStyle, padding: "10px" }}>{isExpanded ? "▼" : "▶"} {div}</td>
+                  <td style={tdRight}>{format(d.a)}</td>
+                  <td style={tdRight}>{format(d.um)}</td>
+                  <td style={tdRight}>{format(d.b)}</td>
+                  <td style={tdRight}>{format(d.t)}</td>
+                  <td style={tdRight}>{format(d.a - d.t)}</td>
+                  <td style={{ ...tdCenter, color: serapanDiv < 70 ? "#dc2626" : "#006837" }}>
+                    {serapanDiv.toFixed(1)}%
+                  </td>
                 </tr>
-              </thead>
-              <tbody>
-                {Object.entries(tree).map(([div, d]: any) => {
-                  const serapan = d.a > 0 ? (d.t / d.a) * 100 : 0;
-                  const isOpen = expandedDiv === div;
-                  return (
-                    <React.Fragment key={div}>
-                      <tr
-                        onClick={() => setExpandedDiv(isOpen ? null : div)}
-                        style={{
-                          borderBottom: "1px solid #eee",
-                          fontSize: "12px",
-                          cursor: "pointer",
-                          background: THEME.primarySoft,
-                          transition: "0.2s"
-                        }}
-                        >
-                        <td style={{ padding: "6px" }}>{isOpen ? "▼" : "▶"} {div}</td>
-                        <td style={{ textAlign: "right" }}>{format(d.a)}</td>
-                        <td style={{ textAlign: "right" }}>{format(d.um)}</td>
-                        <td style={{ textAlign: "right" }}>{format(d.b)}</td>
-                        <td style={{ textAlign: "right" }}>{format(d.t)}</td>
-                        <td style={{ textAlign: "right" }}>{format(d.a - d.t)}</td>
-                        <td style={{ textAlign: "right", color: serapan < 70 ? "red" : "#006837", fontWeight: 600 }}>{serapan.toFixed(1)}%</td>
-                      </tr>
-                      {isOpen && Object.entries(d.organs || {}).map(([org, o]: any) => {
-                        const serapanOrg = o.a > 0 ? (o.t / o.a) * 100 : 0;
-                        return (
-                          <tr
-                            key={org}
-                            style={{
-                             fontSize: "12px",
-                             background: "#ffffff",
-                             borderTop: "1px solid #eee",
-                             transition: "0.2s"
-                            }}
-                          >
-                            <td style={{ paddingLeft: "25px" }}>↳ {org}</td>
-                            <td style={{ textAlign: "right" }}>{format(o.a)}</td>
-                            <td style={{ textAlign: "right" }}>{format(o.um)}</td>
-                            <td style={{ textAlign: "right" }}>{format(o.b)}</td>
-                            <td style={{ textAlign: "right" }}>{format(o.t)}</td>
-                            <td style={{ textAlign: "right" }}>{format(o.a - o.t)}</td>
-                            <td style={{ textAlign: "right", color: serapanOrg < 70 ? "red" : "#006837", fontWeight: 600 }}>{serapanOrg.toFixed(1)}%</td>
-                          </tr>
-                        );                        
-                      })}
-                    </React.Fragment>
-                  );
-                })}
-                {/* BARIS GRAND TOTAL */}
-                          <tr style={{ 
-                            background: THEME.primary,
-                            color: "#fff", 
-                            fontWeight: "800", 
-                            borderTop: "2px solid #cbd5e1",
-                            fontSize: "12px" 
-                          }}>
-                          <td style={{ padding: "10px 6px" }}>GRAND TOTAL</td>
-                          <td style={{ textAlign: "right" }}>{format(grandTotal.a)}</td>
-                          <td style={{ textAlign: "right" }}>{format(grandTotal.um)}</td>
-                          <td style={{ textAlign: "right" }}>{format(grandTotal.b)}</td>
-                          <td style={{ textAlign: "right" }}>{format(grandTotal.t)}</td>
-                          <td style={{ textAlign: "right" }}>{format(grandTotal.a - grandTotal.t)}</td>
-                          <td style={{ 
-                            textAlign: "right", 
-                            color: totalSerapan < 70 ? "red" : "#006837" 
-                          }}>
-                            {totalSerapan.toFixed(1)}%
-                          </td>
-                        </tr>
-              </tbody>
-            </table>
-          </div>
-        </div>
-  )}
+
+                {/* BARIS ORGAN (Hanya muncul jika divisi di-klik) */}
+                {isExpanded &&
+                  Object.entries(d.organs || {}).map(([org, o]: any) => (
+                    <tr key={org} style={{ borderBottom: "1px solid #f1f5f9" }}>
+                      <td style={{ ...tdStyle, paddingLeft: "30px", color: "#64748b" }}>↳ {org}</td>
+                      <td style={tdRight}>{format(o.a)}</td>
+                      <td style={tdRight}>{format(o.um)}</td>
+                      <td style={tdRight}>{format(o.b)}</td>
+                      <td style={tdRight}>{format(o.t)}</td>
+                      <td style={tdRight}>{format(o.a - o.t)}</td>
+                      <td style={tdCenter}>{(o.a > 0 ? (o.t / o.a) * 100 : 0).toFixed(1)}%</td>
+                    </tr>
+                  ))}
+              </React.Fragment>
+            );
+          })}
+
+          {/* GRAND TOTAL - Ditempatkan tepat di bawah penutup looping map */}
+          <tr style={{ background: "#006837", color: "#fff", fontWeight: 800 }}>
+            <td style={{ ...tdStyle, padding: "12px" }}>GRAND TOTAL</td>
+            <td style={tdRight}>{format(grandTotal.a)}</td>
+            <td style={tdRight}>{format(grandTotal.um)}</td>
+            <td style={tdRight}>{format(grandTotal.b)}</td>
+            <td style={tdRight}>{format(grandTotal.t)}</td>
+            <td style={tdRight}>{format(grandTotal.a - grandTotal.t)}</td>
+            <td style={tdCenter}>{totalSerapan.toFixed(1)}%</td>
+          </tr>
+        </tbody>
+      </table>
+    </div>
+  </div>
+)}
 {activeTab === "detail" && (
-  <div
-    className="table-wrapper"
-    style={{
-      width: "100%",
-      overflowX: "auto",
-      WebkitOverflowScrolling: "touch"
-    }}
-  >
+  <div className="table-wrapper-detail">
     <table
       style={{
         borderCollapse: "collapse",
@@ -1482,213 +1382,237 @@ const stickyCol = (left: number, enabled: boolean = true): CSSProperties => {
 )}
 
 {activeTab === "reportDD" && (
-  <div style={{ width: "100%" }}>
-    <h3 style={{ fontSize: "16px", color: "#006837", marginBottom: "20px", fontWeight: "700" }}>
+  <div className="report-dd-wrapper" style={{ width: "100%", padding: "10px" }}>
+    <h3 style={{ fontSize: "18px", color: "#006837", marginBottom: "20px", fontWeight: "700" }}>
       Report Dompet Dhuafa
     </h3>
 
-    {/* ================= KPI ================= */}
-    <div className="kpi-wrapper">
-
-      <StatCard title="Anggaran" value={format(grandTotal.a)} />
-      <StatCard title="UM" value={format(grandTotal.um)} color="#0284c7" />
-      <StatCard title="Beban" value={format(grandTotal.b)} color="#f59e0b" />
-      <StatCard title="Total Trx" value={format(grandTotal.t)} />
-      <StatCard title="Saldo" value={format(grandTotal.a - grandTotal.t)} color="#dc2626" />
-      <StatCard title="Serapan" value={getSerapan(grandTotal.t, grandTotal.a)} color="#006837" />
-    </div>
-
-    {/* ================= KPI TAHUNAN ================= */}
-    <div style={{ overflowX: "auto", WebkitOverflowScrolling: "touch", marginBottom: "20px" }}>
-    <div style={{ display: "flex", gap: "10px", minWidth: "max-content" }}>
-      <StatCard title="Anggaran Tahunan" value={format(totalAnggaranTahunan)} />
-      <StatCard title="Transaksi Tahunan" value={format(totalTransaksiTahunan)} color="#0284c7" />
-      <StatCard
-        title="Saldo Tahunan"
-        value={format(totalSaldoTahunan)}
-        color={totalSaldoTahunan < 0 ? "#dc2626" : "#111"}
-      />
-      <StatCard
-        title="Serapan Tahunan"
-        value={`${serapanTahunan.toFixed(1)}%`}
-        color={serapanTahunan > 100 ? "#dc2626" : "#006837"}
-      />
-    </div>
-
-    {/* ================= ASNAF + PIE ================= */}
-    <div
-      style={{
-        display: "flex",
-        flexWrap: "wrap",
-        gap: "20px",
-        marginBottom: "30px"
+    {/* ================= KPI SECTION (Bisa Scroll Horizontal di Mobile) ================= */}
+    {/* ================= KPI SECTION (Desktop: Side-by-Side | Mobile: Wrapped) ================= */}
+<div 
+  className="kpi-responsive-wrapper" 
+  style={{ 
+    width: "100%", 
+    marginBottom: "25px" 
+  }}
+>
+  <div 
+    className="kpi-container" 
+    style={{ 
+      display: "flex", 
+      gap: "12px", 
+      flexWrap: "wrap", // Desktop menyamping, Mobile otomatis turun/menyesuaikan
+      width: "100%"
+    }}
+  >
+    {[
+      { t: "ANGGARAN", v: grandTotal.a, c: "#111" },
+      { t: "UM", v: grandTotal.um, c: "#0284c7" },
+      { t: "BEBAN", v: grandTotal.b, c: "#f59e0b" },
+      { t: "TOTAL TRX", v: grandTotal.t, c: "#111" },
+      { t: "SALDO", v: grandTotal.a - grandTotal.t, c: "#dc2626" },
+      { t: "SERAPAN", v: getSerapan(grandTotal.t, grandTotal.a), c: "#006837", isPct: true }
+    ].map((item: any, idx: number) => (
+      <div 
+        key={idx} 
+        style={{ 
+          // Desktop: bagi 6 kolom rata | Mobile: ambil 100% lebar (dikurangi gap)
+          flex: "1 1 calc(16.66% - 12px)", 
+          minWidth: "160px", // Mencegah card terlalu gepeng di mobile
+          background: "#fff", 
+          padding: "15px", 
+          borderRadius: "12px", 
+          border: "1px solid #e2e8f0",
+          boxShadow: "0 1px 2px rgba(0,0,0,0.05)"
+        }}
+      >
+        <p style={{ fontSize: "10px", color: "#64748b", fontWeight: "bold", marginBottom: "5px", textTransform: "uppercase" }}>
+          {item.t}
+        </p>
+        <p style={{ fontSize: "14px", fontWeight: "800", color: item.c, margin: 0 }}>
+          {item.isPct ? item.v : format(Number(item.v))}
+        </p>
+      </div>
+    ))}
+  </div>
+</div>
+    {/* ================= ASNAF & CHART (50:50 SPLIT) ================= */}
+    <div 
+      className="asnaf-chart-row" 
+      style={{ 
+        display: "flex", 
+        gap: "20px", 
+        flexWrap: "wrap", // Supaya kalau layar sangat kecil otomatis tumpuk atas-bawah
+        marginBottom: "25px" 
       }}
     >
-      <div style={{ flex: 2 }}>
-        <p style={{ fontSize: "11px", fontWeight: "bold", marginBottom: "8px" }}>
-          Distribusi Asnaf
-        </p>
-
-        <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(140px, 1fr))", gap: "10px" }}>
+      {/* KIRI: DISTRIBUSI ASNAF (50%) */}
+      <div style={{ flex: "1 1 400px", minWidth: "300px" }}>
+        <p style={{ fontSize: "14px", fontWeight: "bold", marginBottom: "15px", color: "#334155" }}>Distribusi Asnaf</p>
+        <div style={{ display: "flex", flexDirection: "column", gap: "8px" }}>
           {Object.entries(asnafMap).map(([k, v]: any) => (
-            <StatCard key={k} title={k} value={format(v)} color="#10b981" />
+            <div 
+              key={k} 
+              style={{ 
+                display: "flex", 
+                justifyContent: "space-between", 
+                alignItems: "center",
+                padding: "12px 15px", 
+                background: "#f8fafc", 
+                borderRadius: "8px",
+                border: "1px solid #f1f5f9"
+              }}
+            >
+              <span style={{ fontSize: "11px", fontWeight: "700", color: "#64748b", textTransform: "uppercase" }}>{k}</span>
+              <span style={{ fontSize: "13px", fontWeight: "700", color: "#10b981" }}>{format(v)}</span>
+            </div>
           ))}
         </div>
       </div>
 
-      <div
-        style={{
-          flex: 1,
-          background: "#fff",
-          padding: "15px",
-          borderRadius: "12px",
-          border: "1px solid #f1f5f9"
+      {/* KANAN: CHART (50%) */}
+      <div 
+        style={{ 
+          flex: "1 1 400px", 
+          minWidth: "300px", 
+          background: "#fff", 
+          padding: "20px", 
+          borderRadius: "12px", 
+          border: "1px solid #e2e8f0",
+          display: "flex",
+          flexDirection: "column",
+          alignItems: "center",
+          justifyContent: "center"
         }}
       >
-        <p style={{ fontSize: "11px", fontWeight: "bold", textAlign: "center" }}>
-          Prog vs Ops
-        </p>
-
-        <div style={{ width: "100%", height: "200px", minWidth: "220px" }}>
-          <ResponsiveContainer width="100%" height="100%">
-            <PieChart>
-              <Pie
-                data={pieData}
-                dataKey="value"
-                cx="50%"
-                cy="50%"
-                innerRadius={30}
-                outerRadius={50}
-                label={(entry: any) => `${(entry.percent * 100).toFixed(0)}%`}
-              >
-                <Cell fill="#006837" />
-                <Cell fill="#f59e0b" />
-              </Pie>
-              <Legend wrapperStyle={{ fontSize: "10px" }} />
-            </PieChart>
-          </ResponsiveContainer>
-        </div>
+        <p style={{ fontSize: "12px", fontWeight: "bold", marginBottom: "10px", color: "#334155" }}>Prog vs Ops</p>
+        <ResponsiveContainer width="100%" height={250}>
+          <PieChart>
+            <Pie
+              data={pieData}
+              dataKey="value"
+              cx="50%"
+              cy="50%"
+              innerRadius={50}
+              outerRadius={80}
+              paddingAngle={5}
+              label={(e: any) => `${(e.percent * 100).toFixed(0)}%`}
+            >
+              <Cell fill="#006837" />
+              <Cell fill="#f59e0b" />
+            </Pie>
+            <Tooltip />
+            <Legend verticalAlign="bottom" height={36} iconType="circle" wrapperStyle={{ fontSize: "12px" }} />
+          </PieChart>
+        </ResponsiveContainer>
       </div>
     </div>
 
-    {/* ================= TABLE ================= */}
-    <div style={{ width: "100%", overflowX: "auto" }}>
-      <div style={{ minWidth: "900px" }}>
-        <table
-          style={{
-            width: "100%",
-            borderCollapse: "collapse",
-            fontSize: "11px"
-          }}
-        >
-          <thead>
-            <tr>
-              <th style={thStickyStyle}>Struktur / Akun DD</th>
-              <th style={thStickyStyle}>Anggaran</th>
-              <th style={thStickyStyle}>UM</th>
-              <th style={thStickyStyle}>Beban</th>
-              <th style={thStickyStyle}>Total</th>
-              <th style={thStickyStyle}>Saldo</th>
-              <th style={{ ...thStickyStyle, textAlign: "center" }}>%</th>
-            </tr>
-          </thead>
+    {/* ================= TABLE (FIXED WRAPPER) ================= */}
+    <div className="table-wrapper-report">
+      <table
+        style={{
+          width: "100%",
+          minWidth: "900px",
+          borderCollapse: "collapse",
+          fontSize: "11px"
+        }}
+      >
+        <thead>
+          <tr>
+            <th style={thStickyStyle}>Struktur / Akun DD</th>
+            <th style={thStickyStyle}>Anggaran</th>
+            <th style={thStickyStyle}>UM</th>
+            <th style={thStickyStyle}>Beban</th>
+            <th style={thStickyStyle}>Total</th>
+            <th style={thStickyStyle}>Saldo</th>
+            <th style={{ ...thStickyStyle, textAlign: "center" }}>%</th>
+          </tr>
+        </thead>
 
-          <tbody>
-            {Object.entries(treeDD).map(([akunDD, d]: any) => {
-              const openDD = expandedDD === akunDD;
-              const serapanDD = d.a > 0 ? (d.t / d.a) * 100 : 0;
+        <tbody>
+          {Object.entries(treeDD).map(([akunDD, d]: any) => {
+            const openDD = expandedDD === akunDD;
+            const serapanDD = d.a > 0 ? (d.t / d.a) * 100 : 0;
 
-              return (
-                <React.Fragment key={akunDD}>
-                  {/* LEVEL 1 */}
-                  <tr
-                    onClick={() => {
-                      setExpandedDD(openDD ? null : akunDD);
-                      setExpandedProg(null);
-                    }}
-                    style={{ background: "#f1f5f9", fontWeight: 700, cursor: "pointer" }}
-                  >
-                   <td style={{ ...tdStyle, ...stickyCol(0), background: "#f1f5f9" }}>
-                      {openDD ? "▼" : "▶"} {akunDD}
-                    </td>
-                    <td style={tdRight}>{format(d.a)}</td>
-                    <td style={tdRight}>{format(d.um)}</td>
-                    <td style={tdRight}>{format(d.b)}</td>
-                    <td style={tdRight}>{format(d.t)}</td>
-                    <td style={tdRight}>{format(d.a - d.t)}</td>
-                    <td style={{ ...tdCenter, color: serapanDD < 70 ? "#dc2626" : "#006837" }}>
-                      {serapanDD.toFixed(1)}%
-                    </td>
-                  </tr>
+            return (
+              <React.Fragment key={akunDD}>
+                <tr
+                  onClick={() => {
+                    setExpandedDD(openDD ? null : akunDD);
+                    setExpandedProg(null);
+                  }}
+                  style={{
+                    background: "#f1f5f9",
+                    fontWeight: 700,
+                    cursor: "pointer"
+                  }}
+                >
+                  <td style={tdStyle}>{openDD ? "▼" : "▶"} {akunDD}</td>
+                  <td style={tdRight}>{format(d.a)}</td>
+                  <td style={tdRight}>{format(d.um)}</td>
+                  <td style={tdRight}>{format(d.b)}</td>
+                  <td style={tdRight}>{format(d.t)}</td>
+                  <td style={tdRight}>{format(d.a - d.t)}</td>
+                  <td style={{ ...tdCenter, color: serapanDD < 70 ? "#dc2626" : "#006837" }}>
+                    {serapanDD.toFixed(1)}%
+                  </td>
+                </tr>
 
-                  {/* LEVEL 2 */}
-                  {openDD &&
-                    Object.entries(d.programsDD).map(([prog, p]: any) => {
-                      const openProg = expandedProg === prog;
-                      const serapanProg = p.a > 0 ? (p.t / p.a) * 100 : 0;
+                {openDD &&
+                  Object.entries(d.programsDD).map(([prog, p]: any) => {
+                    const openProg = expandedProg === prog;
+                    const serapanProg = p.a > 0 ? (p.t / p.a) * 100 : 0;
 
-                      return (
-                        <React.Fragment key={prog}>
-                          <tr
-                            onClick={() => setExpandedProg(openProg ? null : prog)}
-                            style={{ cursor: "pointer" }}
-                          >
-                            <td style={{ ...tdStyle, ...stickyCol(0), paddingLeft: "20px" }}>
-                              {openProg ? "▼" : "▶"} {prog}
-                            </td>
-                            <td style={tdRight}>{format(p.a)}</td>
-                            <td style={tdRight}>{format(p.um)}</td>
-                            <td style={tdRight}>{format(p.b)}</td>
-                            <td style={tdRight}>{format(p.t)}</td>
-                            <td style={tdRight}>{format(p.a - p.t)}</td>
-                            <td style={tdCenter}>{serapanProg.toFixed(1)}%</td>
-                          </tr>
+                    return (
+                      <React.Fragment key={prog}>
+                        <tr onClick={() => setExpandedProg(openProg ? null : prog)}>
+                          <td style={{ ...tdStyle, paddingLeft: "20px" }}>
+                            {openProg ? "▼" : "▶"} {prog}
+                          </td>
+                          <td style={tdRight}>{format(p.a)}</td>
+                          <td style={tdRight}>{format(p.um)}</td>
+                          <td style={tdRight}>{format(p.b)}</td>
+                          <td style={tdRight}>{format(p.t)}</td>
+                          <td style={tdRight}>{format(p.a - p.t)}</td>
+                          <td style={tdCenter}>{serapanProg.toFixed(1)}%</td>
+                        </tr>
 
-                          {/* LEVEL 3 */}
-                          {openProg &&
-                            Object.entries(p.akunBudget).map(([akun, a]: any) => {
-                              const serapanAkun = a.a > 0 ? (a.t / a.a) * 100 : 0;
+                        {openProg &&
+                          Object.entries(p.akunBudget).map(([akun, a]: any) => (
+                            <tr key={akun}>
+                              <td style={{ ...tdStyle, paddingLeft: "40px" }}>• {akun}</td>
+                              <td style={tdRight}>{format(a.a)}</td>
+                              <td style={tdRight}>{format(a.um)}</td>
+                              <td style={tdRight}>{format(a.b)}</td>
+                              <td style={tdRight}>{format(a.t)}</td>
+                              <td style={tdRight}>{format(a.a - a.t)}</td>
+                              <td style={tdCenter}>{(a.a > 0 ? (a.t / a.a) * 100 : 0).toFixed(1)}%</td>
+                            </tr>
+                          ))}
+                      </React.Fragment>
+                    );
+                  })}
+              </React.Fragment>
+            );
+          })}
 
-                              return (
-                                <tr key={akun}>
-                                  <td style={{ ...tdStyle, paddingLeft: "40px" }}>• {akun}</td>
-                                  <td style={tdRight}>{format(a.a)}</td>
-                                  <td style={tdRight}>{format(a.um)}</td>
-                                  <td style={tdRight}>{format(a.b)}</td>
-                                  <td style={tdRight}>{format(a.t)}</td>
-                                  <td style={tdRight}>{format(a.a - a.t)}</td>
-                                  <td style={tdCenter}>{serapanAkun.toFixed(1)}%</td>
-                                </tr>
-                              );
-                            })}
-                        </React.Fragment>
-                      );
-                    })}
-                </React.Fragment>
-              );
-            })}
-
-            {/* GRAND TOTAL */}
-            <tr style={{ background: THEME.primary,
-                          color: "#fff", 
-                          fontWeight: "800", 
-                          borderTop: "2px solid #cbd5e1",
-                          fontSize: "12px" }}>
-              <td style={tdStyle}>GRAND TOTAL</td>
-              <td style={tdRight}>{format(grandTotal.a)}</td>
-              <td style={tdRight}>{format(grandTotal.um)}</td>
-              <td style={tdRight}>{format(grandTotal.b)}</td>
-              <td style={tdRight}>{format(grandTotal.t)}</td>
-              <td style={tdRight}>{format(grandTotal.a - grandTotal.t)}</td>
-              <td style={tdCenter}>{totalSerapan.toFixed(1)}%</td>
-              <td style={{ ...tdStyle, color: "#fff" }}>GRAND TOTAL</td>
-            </tr>
-          </tbody>
-        </table>
-      </div>
+          {/* GRAND TOTAL */}
+          <tr style={{ background: THEME.primary, color: "#fff", fontWeight: 800 }}>
+            <td style={tdStyle}>GRAND TOTAL</td>
+            <td style={tdRight}>{format(grandTotal.a)}</td>
+            <td style={tdRight}>{format(grandTotal.um)}</td>
+            <td style={tdRight}>{format(grandTotal.b)}</td>
+            <td style={tdRight}>{format(grandTotal.t)}</td>
+            <td style={tdRight}>{format(grandTotal.a - grandTotal.t)}</td>
+            <td style={tdCenter}>{totalSerapan.toFixed(1)}%</td>
+          </tr>
+        </tbody>
+      </table>
     </div>
+
   </div>
-</div>
 )}
 </div>
-</div>)}
+</div>
+  )}
