@@ -95,14 +95,24 @@ export default function ExecutiveDashboard() {
   const [expandedSub, setExpandedSub] = useState<Record<string, boolean>>({});
   
   useEffect(() => {
-    fetch("/api/sheets")
-      .then(res => res.json())
-      .then(res => {
-        setData(Array.isArray(res) ? res : res?.data ?? []);
-        setLoading(false);
-      })
-      .catch(() => setLoading(false));
-  }, []);
+  // CEK LOGIN
+  const isLoggedIn = localStorage.getItem("isLoggedIn");
+
+  if (!isLoggedIn) {
+    window.location.href = "/login";
+    return;
+  }
+
+  // FETCH DATA
+  fetch("/api/sheets")
+    .then(res => res.json())
+    .then(res => {
+      setData(Array.isArray(res) ? res : res?.data ?? []);
+      setLoading(false);
+    })
+    .catch(() => setLoading(false));
+
+}, []);
   const safeData = Array.isArray(data) ? data : [];
   const [printKey, setPrintKey] = useState(0);
 
@@ -740,7 +750,24 @@ const stickyCol = (left: number): CSSProperties => ({
             <h1 style={{ color: "#006837", margin: 0, fontSize: "20px" }}>Executive Financial Dashboard</h1>
             <p style={{ color: THEME.textSoft, margin: 0, fontSize: "11px" }}>Great Edunesia • {tahun} • {jenisDana}</p>
           </div>
-          <button className="no-print" onClick={() => window.print()} style={{ padding: "10px 20px", background: "#f59e0b", color: "#fff", border: "none", borderRadius: "6px", cursor: "pointer", fontWeight: "bold" }}>🖨️ Cetak</button>
+          <button
+            className="no-print"
+            onClick={() => {
+              localStorage.removeItem("isLoggedIn");
+              window.location.href = "/login";
+            }}
+            style={{
+              padding: "10px 20px",
+              background: "#dc2626",
+              color: "#fff",
+              border: "none",
+              borderRadius: "6px",
+              cursor: "pointer",
+              fontWeight: "bold"
+            }}
+          >
+            Logout
+          </button>
         </div>
       </div>
 
