@@ -414,10 +414,7 @@ const tableStyle: CSSProperties = {
   letterSpacing: "0.4px",
   borderBottom: `1px solid ${THEME.border}`,
   textAlign: "center",
-  position: "sticky",
-  top: 0,
-  zIndex: 5
-};
+ };
 
 const tdStyle: CSSProperties = {
   borderBottom: "1px solid #e5e7eb",
@@ -458,6 +455,14 @@ const stickyLeft = (left: number, bg: string = "#fff"): CSSProperties => ({
   zIndex: 3,
   borderRight: "1px solid #e2e8f0"
 });
+
+const thStickyStyle: CSSProperties = {
+  ...thStyle,
+  position: "sticky",
+  top: 0,
+  background: THEME.primarySoft,
+  zIndex: 10
+};
 
 const rowHover = (base: string, hover: string) => ({
   style: {
@@ -1004,98 +1009,161 @@ const stickyCol = (left: number): CSSProperties => ({
             
             {/* ✅ TARUH DI SINI */}
             {activeTab === "summary" && (
-              <div className="chart-box trend-chart" style={{ 
+            <div
+              className="chart-box trend-chart"
+              style={{
                 background: "#fff",
-                border: "1px solid #e2e8f0", 
-                borderRadius: "12px", 
-                padding: "20px",
-                marginBottom: "20px",
+                border: "1px solid #e2e8f0",
+                borderRadius: "12px",
+                padding: "14px",
+                marginBottom: "16px",
                 boxShadow: "0 1px 3px rgba(0,0,0,0.05)"
-              }}>
-                <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: "15px" }}>
-                  <h4 style={{ fontSize: "14px", fontWeight: "700", color: THEME.text, margin: 0 }}>
-                    Tren Bulanan: Budget vs Actual
-                  </h4>
-                  <div style={{ fontSize: "11px", color: "#006837" }}>
-                    <span style={{ marginRight: "8px" }}>● Anggaran</span>
-                    <span>● Realisasi (UM+Beban)</span>
-                  </div>
-                </div>
+              }}
+            >
+              {/* ================= HEADER (KPI STYLE) ================= */}
+              <div
+                style={{
+                  display: "flex",
+                  flexDirection: "column",
+                  gap: "6px",
+                  marginBottom: "12px"
+                }}
+              >
+                <h4
+                  style={{
+                    fontSize: "14px",
+                    fontWeight: 700,
+                    color: THEME.text,
+                    margin: 0
+                  }}
+                >
+                  Tren Bulanan: Budget vs Actual
+                </h4>
 
-                <div className="chart-container trend-container" style={{ width: "100%", height: "380px" }}>
-                  <ResponsiveContainer key={printKey} width="100%" height="100%">
-                    <ComposedChart
-                        data={trendBulanan}
-                        margin={{ top: 10, right: 20, left: 20, bottom: 0 }}
-                        barCategoryGap="60%"
-                      >
-                      <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="#d7e8dd" />
-                      <XAxis 
-                        dataKey="bulan"
-                        scale="point"
-                        padding={{ left: 20, right: 20}}
-                        axisLine={false}
-                        tickLine={false}
-                        tick={{ fontSize: 11, fill: "#006837" }}
-                        tickFormatter={(b) => ["Jan","Feb","Mar","Apr","Mei","Jun","Jul","Agu","Sep","Okt","Nov","Des"][b-1]}
-                      />
-                      <YAxis 
-                        axisLine={false}
-                        tickLine={false}
-                        tick={{ fontSize: 10, fill: "#006837" }}
-                        tickFormatter={(value) => `${(value / 1000000).toFixed(0)}M`} // Persingkat ke Juta/Miliar agar tidak sesak
-                      />
-                      <Tooltip 
-                        contentStyle={{ borderRadius: "8px", border: "none", boxShadow: "0 4px 12px rgba(0,0,0,0.1)" }}
-                        formatter={(v: any) => format(v)} 
-                      />
-                      <Legend verticalAlign="top" align="right" height={36} iconType="circle" />
-                      
-                      {/* Anggaran sebagai Area/Line (Target) */}
-                      <Area 
-                        type="monotone" 
-                        dataKey="anggaran" 
-                        fill="#f1f5f9" 
-                        stroke="#94a3b8" 
-                        name="Target Anggaran" 
-                        strokeWidth={2}
-                        dot={isPrint ? false : { r: 2 }}
-                        activeDot={isPrint ? false : { r: 2 }}  
-                      />
-                      
-                      {/* Realisasi sebagai Bar (Actual) */}
-                      <Bar 
-                        dataKey="realisasi" 
-                        fill="#f59e0b" 
-                        name="Realisasi Actual" 
-                        radius={[1, 1, 0, 0]} 
-                      />
-                    </ComposedChart>
-                  </ResponsiveContainer>
+                <div
+                  style={{
+                    fontSize: "10px",
+                    color: "#006837",
+                    display: "flex",
+                    gap: "12px",
+                    flexWrap: "wrap"
+                  }}
+                >
+                  <span>● Anggaran</span>
+                  <span>● Realisasi (UM+Beban)</span>
                 </div>
               </div>
-            )}
+
+              {/* ================= CHART ================= */}
+              <div
+                className="chart-container trend-container"
+                style={{
+                  width: "100%",
+                  height: "320px"
+                }}
+              >
+                <ResponsiveContainer key={printKey} width="100%" height="100%">
+                  <ComposedChart
+                    data={trendBulanan}
+                    margin={{ top: 10, right: 10, left: 10, bottom: 0 }}
+                    barCategoryGap="60%"
+                  >
+                    <CartesianGrid
+                      strokeDasharray="3 3"
+                      vertical={false}
+                      stroke="#d7e8dd"
+                    />
+
+                    <XAxis
+                      dataKey="bulan"
+                      scale="point"
+                      padding={{ left: 10, right: 10 }}
+                      axisLine={false}
+                      tickLine={false}
+                      tick={{ fontSize: 10, fill: "#006837" }}
+                      tickFormatter={(b) =>
+                        ["Jan","Feb","Mar","Apr","Mei","Jun","Jul","Agu","Sep","Okt","Nov","Des"][b - 1]
+                      }
+                    />
+
+                    <YAxis
+                      axisLine={false}
+                      tickLine={false}
+                      tick={{ fontSize: 10, fill: "#006837" }}
+                      tickFormatter={(value) =>
+                        `${(value / 1000000).toFixed(0)}M`
+                      }
+                    />
+
+                    <Tooltip
+                      contentStyle={{
+                        borderRadius: "8px",
+                        border: "none",
+                        boxShadow: "0 4px 12px rgba(0,0,0,0.1)"
+                      }}
+                      formatter={(v: any) => format(v)}
+                    />
+
+                    <Legend
+                      verticalAlign="top"
+                      align="right"
+                      height={30}
+                      iconType="circle"
+                      wrapperStyle={{ fontSize: "10px" }}
+                    />
+
+                    {/* ================= AREA (ANGGARAN) ================= */}
+                    <Area
+                      type="monotone"
+                      dataKey="anggaran"
+                      fill="#f1f5f9"
+                      stroke="#94a3b8"
+                      name="Target Anggaran"
+                      strokeWidth={2}
+                      dot={isPrint ? false : { r: 2 }}
+                      activeDot={isPrint ? false : { r: 3 }}
+                    />
+
+                    {/* ================= BAR (REALISASI) ================= */}
+                    <Bar
+                      dataKey="realisasi"
+                      fill="#f59e0b"
+                      name="Realisasi Actual"
+                      radius={[2, 2, 0, 0]}
+                    />
+                  </ComposedChart>
+                </ResponsiveContainer>
+              </div>
+            </div>
+          )}
           <div
             className="table-wrapper"
             style={{
               width: "100%",
-              overflow: "auto",
-              maxHeight: "70vh",
-              position: "relative"
+              overflowX: "auto",
+              WebkitOverflowScrolling: "touch",
             }}
-          >
-            <div style={{ overflowX: "auto", width: "100%" }}>
-            <table style={tableStyle}>
+            >
+            <table
+              style={{
+                borderCollapse: "collapse",
+                width: "100%",
+                minWidth: "800px",
+                fontSize: "11px"
+              }}
+            >
               <thead>
                 <tr>
-                  <th style={{ ...thStyle, textAlign: "center" }}>Struktur Divisi / Organ</th>
+                  <th style={{ ...thStyle, textAlign: "center" }}>
+                    Struktur Divisi / Organ
+                  </th>
                   <th style={thStyle}>Anggaran</th>
                   <th style={thStyle}>UM</th>
                   <th style={thStyle}>Beban</th>
                   <th style={thStyle}>Total Transaksi</th>
                   <th style={thStyle}>Saldo</th>
                   <th style={{ ...thStyle, textAlign: "center" }}>%</th>
-                  </tr>
+                </tr>
               </thead>
               <tbody>
                 {Object.entries(tree).map(([div, d]: any) => {
@@ -1182,7 +1250,6 @@ const stickyCol = (left: number): CSSProperties => ({
             </table>
           </div>
         </div>
-     </div>
   )}
 {activeTab === "detail" && (
   <div
@@ -1203,7 +1270,7 @@ const stickyCol = (left: number): CSSProperties => ({
     >
       <thead>
         <tr>
-          <th style={{ ...thStyle, textAlign: "left" }}>Struktur Detail</th>
+          <th style={thStickyStyle}>Struktur Detail</th>
           <th style={thStyle}>Anggaran</th>
           <th style={thStyle}>UM</th>
           <th style={thStyle}>Beban</th>
@@ -1237,7 +1304,7 @@ const stickyCol = (left: number): CSSProperties => ({
                   e.currentTarget.style.background = "#dde7e2";
                 }}
               >
-                <td style={{ ...tdStyle, ...stickyLeft(0, THEME.primarySoft) }}>
+                <td style={tdStyle}>
                   {openDiv ? "▼" : "▶"} {div}
                 </td>
                 <td style={tdRight}>{format(d.a)}</td>
@@ -1379,7 +1446,7 @@ const stickyCol = (left: number): CSSProperties => ({
 )}
 
 {activeTab === "reportDD" && (
-  <div style={{ width: "100%", overflowX: "hidden" }}>
+  <div style={{ width: "100%", overflowX: "auto" }}>
     <h3 style={{ fontSize: "16px", color: "#006837", marginBottom: "20px", fontWeight: "700" }}>
       Report Dompet Dhuafa
     </h3>
@@ -1492,13 +1559,13 @@ const stickyCol = (left: number): CSSProperties => ({
         >
           <thead>
             <tr>
-              <th style={thStyle}>Akun DD</th>
-              <th style={thStyle}>Anggaran</th>
-              <th style={thStyle}>UM</th>
-              <th style={thStyle}>Beban</th>
-              <th style={thStyle}>Total</th>
-              <th style={thStyle}>Saldo</th>
-              <th style={{ ...thStyle, textAlign: "center" }}>%</th>
+              <th style={thStickyStyle}>Struktur / Akun DD</th>
+              <th style={thStickyStyle}>Anggaran</th>
+              <th style={thStickyStyle}>UM</th>
+              <th style={thStickyStyle}>Beban</th>
+              <th style={thStickyStyle}>Total</th>
+              <th style={thStickyStyle}>Saldo</th>
+              <th style={{ ...thStickyStyle, textAlign: "center" }}>%</th>
             </tr>
           </thead>
 
