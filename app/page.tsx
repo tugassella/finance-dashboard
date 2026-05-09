@@ -8,25 +8,46 @@ import {
   ResponsiveContainer, ComposedChart, Area, CartesianGrid, Legend, PieChart, Pie, Cell
 } from "recharts";
 import { CSSProperties } from "react";
+import { throwForMissingRequestStore } from "next/dist/server/app-render/work-unit-async-storage.external";
 
 // --- Sub-Komponen StatCard ---
+const THEME = {
+  primary: "#006837",
+  primarySoft: "#edf7f1",
+  primaryHover: "#dff1e6",
+
+  text: "#1e293b",
+  textSoft: "#64748b",
+
+  border: "#dbe4dc",
+  bg: "#f6fbf8",
+  white: "#ffffff",
+
+  warning: "#f59e0b",
+  danger: "#dc2626",
+  shadow: "0 1px 3px rgba(0,0,0,0.05)"
+};
+
 const StatCard = ({ title, value, color = "#111" }: { title: string, value: string, color?: string }) => (
   <div style={{
-  background: "#fff",
-      padding: "16px 20px",
+      background: THEME.bg,
+      padding: "18px",
       borderRadius: "12px",
-      border: "1px solid #e2e8f0",
-      boxShadow: "0 1px 3px rgba(0,0,0,0.1)",
+      border: "1px solid ${THEME.border}",
+      boxShadow: THEME.shadow,
       display: "flex",
       flexDirection: "column",
       gap: "8px",
       minWidth: "180px",
-      flex: 1
+      minHeight: "100vh",
+      flex: 1,
+      fontFamily: "system-ui,-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif",
+      color: THEME.text
     }}>
       <span style={{ 
         fontSize: "11px", 
         fontWeight: "600", 
-        color: "#64748b", 
+        color: THEME.textSoft, 
         textTransform: "uppercase",
         letterSpacing: "0.05em" 
       }}>
@@ -364,15 +385,25 @@ const totalSerapan =
     }
   });
 
+const tableStyle: CSSProperties = {
+  borderCollapse: "collapse",
+  width: "100%",
+  minWidth: "1200px",
+  fontFamily: "system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif",
+  fontSize: "12px",
+  color: THEME.text,
+  background: THEME.white
+};
+
  const thStyle: CSSProperties = {
-  background: "#f8fafc",
-  color: "#334155",
+  background: THEME.primarySoft,
+  color: THEME.primary,
   padding: "10px 8px",
   fontSize: "11px",
   fontWeight: 600,
   textTransform: "uppercase",
   letterSpacing: "0.4px",
-  borderBottom: "1px solid #e2e8f0",
+  borderBottom: `1px solid ${THEME.border}`,
   textAlign: "center",
   position: "sticky",
   top: 0,
@@ -384,7 +415,7 @@ const tdStyle: CSSProperties = {
   padding: "6px 8px",
   fontSize: "12px",
   fontWeight: 500,
-  color: "#111827"
+  color: THEME.text
 };
 
 const tdRight: CSSProperties = {
@@ -451,16 +482,20 @@ const stickyCol = (left: number): CSSProperties => ({
   borderRight: "1px solid #e2e8f0"
 });
 
-const tableStyle: CSSProperties = {
-  borderCollapse: "collapse",
-  width: "100%",
-  minWidth: "1200px",
-  fontFamily: "Inter, sans-serif",
-  fontSize: "12px",
-  color: "#0f172a"
-};
+
+
   return (
-    <div style={{ padding: "20px", background: "#f8fafc", minHeight: "100vh", fontFamily: "sans-serif" }}>
+    <div
+  className="dashboard-root"
+  style={{
+    padding: "20px",
+    background: THEME.bg,
+    minHeight: "100vh",
+    fontFamily:
+      "system-ui,-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif",
+    color: THEME.text
+  }}
+>
       <style>{`
         @media print {
 
@@ -598,16 +633,24 @@ const tableStyle: CSSProperties = {
       }
         /* tab tetap */
         .tab-btn {
-          padding: 10px 20px;
-          font-weight: bold;
-          border-radius: 8px 8px 0 0;
+          padding: 10px 18px;
+          font-weight: 600;
+          border-radius: 10px 10px 0 0;
           cursor: pointer;
           border: none;
-          font-size: 14px;
-          transition: 0.3s;
+          font-size: 13px;
+          transition: all 0.2s ease;
         }
-        .tab-active { background: #006837; color: white; }
-        .tab-inactive { background: #e2e8f0; color: #64748b; }
+
+        .tab-active {
+          background: #006837;
+          color: white;
+        }
+
+        .tab-inactive {
+          background: #edf7f1;
+          color: #006837;
+        }
 
           /* =========================
             SCROLL FIX
@@ -649,19 +692,12 @@ const tableStyle: CSSProperties = {
             display: none; /* Chrome */
           }
 
-          table {
-            font-family: "Georgia", "Times New Roman", serif;
-            font-size: 12.5px;
-            color: #1f2937;
-            letter-spacing: 0.2px;
-          }
-
           th {
             font-size: 11px;
             font-weight: 700;
             text-transform: uppercase;
             letter-spacing: 0.8px;
-            color: #374151;
+            color: THEME.text;
           }
 
           td {
@@ -676,7 +712,7 @@ const tableStyle: CSSProperties = {
             <h3 style={{ fontSize: "16px", color: "#b91c1c", marginBottom: "15px" }}>Detail UM Menggantung</h3>
             <div style={{ maxHeight: "350px", overflowY: "auto" }}>
               {Object.entries(agingUMList).map(([sub, info]: any) => (
-                <div key={sub} style={{ display: "flex", justifyContent: "space-between", padding: "8px 0", borderBottom: "1px solid #f1f5f9", fontSize: "12px" }}>
+                <div key={sub} style={{ display: "flex", justifyContent: "space-between", padding: "8px 0", borderBottom: `1px solid ${THEME.primarySoft}`, fontSize: "12px" }}>
                   <div style={{ flex: 1 }}>
                     <div style={{ fontWeight: "bold" }}>{sub}</div>
                     <div style={{ fontSize: "10px", color: "#ef4444" }}>Keterlambatan: {info.aging} bulan</div>
@@ -701,7 +737,7 @@ const tableStyle: CSSProperties = {
         >
           <div>
             <h1 style={{ color: "#006837", margin: 0, fontSize: "20px" }}>Executive Financial Dashboard</h1>
-            <p style={{ color: "#64748b", margin: 0, fontSize: "11px" }}>Great Edunesia • {tahun} • {jenisDana}</p>
+            <p style={{ color: THEME.textSoft, margin: 0, fontSize: "11px" }}>Great Edunesia • {tahun} • {jenisDana}</p>
           </div>
           <button className="no-print" onClick={() => window.print()} style={{ padding: "10px 20px", background: "#f59e0b", color: "#fff", border: "none", borderRadius: "6px", cursor: "pointer", fontWeight: "bold" }}>🖨️ Cetak</button>
         </div>
@@ -901,7 +937,7 @@ const tableStyle: CSSProperties = {
                 boxShadow: "0 1px 3px rgba(0,0,0,0.05)"
               }}>
                 <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: "15px" }}>
-                  <h4 style={{ fontSize: "14px", fontWeight: "700", color: "#1e293b", margin: 0 }}>
+                  <h4 style={{ fontSize: "14px", fontWeight: "700", color: THEME.text, margin: 0 }}>
                     Tren Bulanan: Budget vs Actual
                   </h4>
                   <div style={{ fontSize: "11px", color: "#006837" }}>
@@ -917,7 +953,7 @@ const tableStyle: CSSProperties = {
                         margin={{ top: 10, right: 20, left: 20, bottom: 0 }}
                         barCategoryGap="60%"
                       >
-                      <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="#006837" />
+                      <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="#d7e8dd" />
                       <XAxis 
                         dataKey="bulan"
                         scale="point"
@@ -996,11 +1032,11 @@ const tableStyle: CSSProperties = {
                           borderBottom: "1px solid #eee",
                           fontSize: "12px",
                           cursor: "pointer",
-                          background: "#fafafa",
+                          background: THEME.primarySoft,
                           transition: "0.2s"
                         }}
                         onMouseEnter={(e) => {
-                          e.currentTarget.style.background = "#f1f5f9";
+                          e.currentTarget.style.background = THEME.primaryHover;
                         }}
                         onMouseLeave={(e) => {
                           e.currentTarget.style.background = "#transparent";
@@ -1025,7 +1061,7 @@ const tableStyle: CSSProperties = {
                              transition: "0.2s"
                             }}
                             onMouseEnter={(e) => {
-                             e.currentTarget.style.background = "#f1f5f9"; // beda dikit biar hierarki keliatan
+                             e.currentTarget.style.background = THEME.primaryHover; // beda dikit biar hierarki keliatan
                             }}
                             onMouseLeave={(e) => {
                              e.currentTarget.style.background = "#transparent";
@@ -1046,7 +1082,8 @@ const tableStyle: CSSProperties = {
                 })}
                 {/* BARIS GRAND TOTAL */}
                           <tr style={{ 
-                            background: "#6c9b6f", 
+                            background: THEME.primary,
+                            color: "#fff", 
                             fontWeight: "800", 
                             borderTop: "2px solid #cbd5e1",
                             fontSize: "12px" 
@@ -1109,13 +1146,13 @@ const tableStyle: CSSProperties = {
                   cursor: "pointer"
                 }}
                 onMouseEnter={(e) => {
-                  e.currentTarget.style.background = "#f1f5f9";
+                  e.currentTarget.style.background = THEME.primaryHover;
                 }}
                 onMouseLeave={(e) => {
                   e.currentTarget.style.background = "#transparent";
                 }}
               >
-                <td style={{ ...tdStyle, ...stickyLeft(0, "#f1f5f9") }}>
+                <td style={{ ...tdStyle, ...stickyLeft(0, THEME.primarySoft) }}>
                   {openDiv ? "▼" : "▶"} {div}
                 </td>
                 <td style={tdRight}>{format(d.a)}</td>
@@ -1139,7 +1176,7 @@ const tableStyle: CSSProperties = {
                       <tr
                         style={{ background: "#ffffff", fontWeight: 500, color: "#334155", cursor: "default" }}
                         onMouseEnter={(e) => {
-                          e.currentTarget.style.background = "#f1f5f9";
+                          e.currentTarget.style.background = THEME.primaryHover;
                         }}
                         onMouseLeave={(e) => {
                           e.currentTarget.style.background = "#transparent";
@@ -1176,7 +1213,7 @@ const tableStyle: CSSProperties = {
                               cursor: "pointer",
                               fontWeight: 500
                             }}
-                            onMouseEnter={(e) => (e.currentTarget.style.background = "#f1f5f9")}
+                            onMouseEnter={(e) => (e.currentTarget.style.background = THEME.primaryHover)}
                             onMouseLeave={(e) => (e.currentTarget.style.background = "#transparent")}>
                           
                             <td style={{ ...tdStyle, paddingLeft: "40px" }}>
@@ -1198,16 +1235,16 @@ const tableStyle: CSSProperties = {
                                   <tr
                                     key={akun}
                                     style={{
-                                      background: "#ffffff", fontWeight: 400, color: "#64748b", cursor: "default"
+                                      background: "#ffffff", fontWeight: 400, color: THEME.textSoft, cursor: "default"
                                     }}
                                     onMouseEnter={(e) =>
-                                      (e.currentTarget.style.background = "#f1f5f9")
+                                      (e.currentTarget.style.background = THEME.primaryHover)
                                     }
                                     onMouseLeave={(e) =>
                                       (e.currentTarget.style.background = "#transparent")
                                     }
                                   >
-                                    <td style={{ ...tdStyle, paddingLeft: "60px", color: "#64748b" }}>
+                                    <td style={{ ...tdStyle, paddingLeft: "60px", color: THEME.textSoft }}>
                                       ▸ {akun}
                                     </td>
                                     <td style={tdRight}>{format(a.a)}</td>
@@ -1231,8 +1268,8 @@ const tableStyle: CSSProperties = {
                 {/* GRAND TOTAL */}
         <tr
           style={{
-            background: "#0f172a",
-            color: "#ffffff",
+            background: THEME.primary,
+            color: "#fff",
             fontWeight: 800,
             borderTop: "2px solid #334155"
           }}
@@ -1449,7 +1486,8 @@ const tableStyle: CSSProperties = {
             })}
 
             {/* GRAND TOTAL */}
-            <tr style={{ background: "#6c9b6f", color: "#fff", fontWeight: "bold" }}>
+            <tr style={{ background: THEME.primary,
+            color: "#fff", fontWeight: "bold" }}>
               <td style={tdStyle}>GRAND TOTAL</td>
               <td style={tdRight}>{format(grandTotal.a)}</td>
               <td style={tdRight}>{format(grandTotal.um)}</td>
