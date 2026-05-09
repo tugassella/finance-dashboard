@@ -27,9 +27,11 @@ const THEME = {
   danger: "#dc2626",
   shadow: "0 1px 3px rgba(0,0,0,0.05)"
 };
-const COLORS = ["#10b981", "#3b82f6"]; // prog vs ops
+
 const StatCard = ({ title, value, color = "#111" }: { title: string, value: string, color?: string }) => (
-  <div style={{
+  <div
+    className="stat-card hoverable"
+    style={{
       background: THEME.bg,
       padding: "18px",
       borderRadius: "12px",
@@ -39,28 +41,15 @@ const StatCard = ({ title, value, color = "#111" }: { title: string, value: stri
       flexDirection: "column",
       gap: "4px",
       minWidth: "120px",
-      flex: "1", // 🟢 UBAH DARI "100%" KE "1"
+      flex: "1",
       fontFamily: "system-ui,-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif",
       color: THEME.text
-    }}>
-      <span style={{ 
-        fontSize: "11px", 
-        fontWeight: "600", 
-        color: THEME.textSoft, 
-        textTransform: "uppercase",
-        letterSpacing: "0.05em" 
-      }}>
-        {title}
-      </span>
-      <div style={{ 
-        fontSize: "12px", 
-        fontWeight: "700", 
-        color: color 
-      }}>
-        {value}
-      </div>
-    </div>
-  );
+    }}
+  >
+    <span style={{ fontSize: "11px", fontWeight: 600 }}>{title}</span>
+    <div style={{ fontSize: "14px", fontWeight: 700, color }}>{value}</div>
+  </div>
+);
 
 // --- Sub-Komponen FilterSelect ---
 const FilterSelect = ({ label, value, options, onChange }: any) => (
@@ -93,7 +82,7 @@ export default function ExecutiveDashboard() {
   const [isPrint, setIsPrint] = useState(false);
   const [expanded, setExpanded] = useState<Record<string, boolean>>({});
   const [expandedSub, setExpandedSub] = useState<Record<string, boolean>>({});
-  
+  const [hoveredKpi, setHoveredKpi] = useState<number | null>(null);
   useEffect(() => {
   // CEK LOGIN
   const isLoggedIn = localStorage.getItem("isLoggedIn");
@@ -448,10 +437,10 @@ const firstColStyle: CSSProperties = {
   borderRight: "1px solid #e2e8f0"
 };
 
-const stickyLeft = (left: number, bg: string = "#fff"): CSSProperties => ({
+const stickyLeft = (left: number): CSSProperties => ({
   position: "sticky",
   left,
-  background: bg,
+  background: "inherit",
   zIndex: 3,
   borderRight: "1px solid #e2e8f0"
 });
@@ -461,7 +450,7 @@ const thStickyStyle: CSSProperties = {
   position: "sticky",
   top: 0,
   background: THEME.primarySoft,
-  zIndex: 10
+  zIndex: 2, // turunin dari 10
 };
 
 const rowHover = (base: string, hover: string) => ({
@@ -612,7 +601,8 @@ const stickyCol = (left: number, enabled: boolean = true): CSSProperties => {
         }
 
         .kpi-container {
-          grid-template-columns: 1fr !important;
+          position: relative;
+          z-index: 1;
         }
 
         .charts-wrapper {
@@ -682,7 +672,7 @@ const stickyCol = (left: number, enabled: boolean = true): CSSProperties => {
         cursor: pointer;
         border: 1px solid transparent;
         font-size: 13px;
-        transition: all 0.2s ease;
+        transition: all 0.15s ease;
       }
 
         .tab-inactive {
@@ -703,6 +693,11 @@ const stickyCol = (left: number, enabled: boolean = true): CSSProperties => {
 
       .table-hover-row:hover {
         background: #eefaf3 !important;
+      }
+      
+      .table-wrapper-report table {
+        position: relative;
+        z-index: 100;
       }
 
       .table-row {
@@ -784,13 +779,7 @@ const stickyCol = (left: number, enabled: boolean = true): CSSProperties => {
             background: #fff;
             transition: all 0.2s ease;
           }
-            display: grid;
-            grid-template-columns: 2fr 1fr;
-            
-            @media (max-width: 768px) {
-              grid-template-columns: 1fr;
-            }
-          
+                      
           .kpi-scroll {
             overflow-x: auto;
             -webkit-overflow-scrolling: touch;
@@ -889,6 +878,57 @@ const stickyCol = (left: number, enabled: boolean = true): CSSProperties => {
                 flex: none;
               }
             }
+              body {
+              cursor: default;
+            }
+
+            .clickable {
+              cursor: pointer;
+            }
+
+            .hoverable {
+              transition: all 0.15s ease;
+            }
+
+            .hoverable:hover {
+              transform: translateY(-2px);
+              box-shadow: 0 4px 12px rgba(0,0,0,0.08);
+            }
+
+            .stat-card {
+              transition: all 0.15s ease;
+              cursor: pointer;
+            }
+
+            .stat-card:hover {
+              transform: translateY(-3px);
+              box-shadow: 0 6px 18px rgba(0,0,0,0.08);
+            }
+
+           .table-wrapper-report {
+            position: relative !important;
+            z-index: 99999 !important;
+            isolation: isolate;
+          }
+            
+           .table-wrapper-report tbody tr:hover td {
+            background: #e6f4ea !important;
+          }
+
+          .kpi-container {
+            pointer-events: none !important;
+          }
+        
+          .recharts-wrapper {
+            pointer-events: none !important;
+          }
+
+          .table-wrapper-report tbody tr:hover td {
+            background: #e6f4ea !important;
+          }
+ 
+
+            
       `}</style>
       
       {showUMModal && (
@@ -1027,13 +1067,53 @@ const stickyCol = (left: number, enabled: boolean = true): CSSProperties => {
 
       <div 
         className="no-print tab-wrapper" 
-        style={{ display: "flex", gap: "5px" }}
+        style={{ 
+          display: "flex", 
+          gap: "5px", 
+          borderBottom: "2px solid #e2e8f0", // Garis dasar tab
+          padding: "0 10px",
+          marginTop: "20px"
+        }}
       >
-        <button onClick={() => setActiveTab("summary")} className={`tab-btn ${activeTab === "summary" ? "tab-active" : "tab-inactive"}`}>📊 Summary</button>
-        <button onClick={() => setActiveTab("detail")} className={`tab-btn ${activeTab === "detail" ? "tab-active" : "tab-inactive"}`}>📝 Detail</button>
-        <button onClick={() => setActiveTab("reportDD")} className={`tab-btn ${activeTab === "reportDD" ? "tab-active" : "tab-inactive"}`}>📊 Report DD</button>
+        {[
+          { id: "summary", label: "Summary", icon: "📊" },
+          { id: "detail", label: "Detail", icon: "📝" },
+          { id: "reportDD", label: "Report DD", icon: "📊" }
+        ].map((tab) => (
+          <button 
+            key={tab.id}
+            onClick={() => setActiveTab(tab.id)} 
+            className={`tab-btn ${activeTab === tab.id ? "tab-active" : "tab-inactive"}`}
+            style={{
+              padding: "10px 20px",
+              cursor: "pointer",
+              border: "none",
+              outline: "none",
+              display: "flex",
+              alignItems: "center",
+              gap: "8px",
+              fontWeight: "600",
+              fontSize: "13px",
+              transition: "all 0.2s ease",
+              borderRadius: "8px 8px 0 0", // Efek melengkung atas (Folder Look)
+              position: "relative",
+              bottom: "-2px", // Biar nutupin garis border-bottom pas aktif
+              
+              
+              // --- LOGIKA STYLE AKTIF ---
+              backgroundColor: activeTab === tab.id ? "#fff" : "transparent",
+              color: activeTab === tab.id ? "#006837" : "#64748b",
+              borderTop: activeTab === tab.id ? "3px solid #006837" : "3px solid transparent",
+              borderLeft: activeTab === tab.id ? "2px solid #e2e8f0" : "none",
+              borderRight: activeTab === tab.id ? "2px solid #e2e8f0" : "none",
+              borderBottom: activeTab === tab.id ? "2px solid #fff" : "none",
+              boxShadow: activeTab === tab.id ? "0 -4px 6px -1px rgba(0, 0, 0, 0.05)" : "none"
+            }}
+          >
+            {tab.icon} {tab.label}
+          </button>
+        ))}
       </div>
-
       <div className="dashboard-content" style={{ background: "#fff", padding: "20px", borderRadius: "0 12px 12px 12px", boxShadow: "0 4px 6px rgba(0,0,0,0.05)" }}>
         
        {activeTab === "summary" && (
@@ -1139,74 +1219,108 @@ const stickyCol = (left: number, enabled: boolean = true): CSSProperties => {
     </div>
 
     {/* 5. TABLE SUMMARY SECTION */}
-    <div className="table-wrapper-summary">
-      <table style={{ width: "100%", minWidth: "900px", borderCollapse: "collapse", fontSize: "11px" }}>
-        <thead>
-          <tr style={{ background: "#f8fafc", borderBottom: "2px solid #e2e8f0" }}>
-            <th style={{ ...thStickyStyle, textAlign: "left", padding: "12px" }}>Struktur</th>
-            <th style={thStickyStyle}>Anggaran</th>
-            <th style={thStickyStyle}>UM</th>
-            <th style={thStickyStyle}>Beban</th>
-            <th style={thStickyStyle}>Total</th>
-            <th style={thStickyStyle}>Saldo</th>
-            <th style={{ ...thStickyStyle, textAlign: "center" }}>%</th>
-          </tr>
-        </thead>
-        <tbody>
-          {/* LOOPING DATA DIVISI */}
-          {Object.entries(tree).map(([div, d]: any) => {
-            const isExpanded = expandedDiv === div;
-            const serapanDiv = d.a > 0 ? (d.t / d.a) * 100 : 0;
+<div className="table-wrapper-summary">
+  <table
+    style={{
+      width: "100%",
+      minWidth: "900px",
+      borderCollapse: "collapse",
+      fontSize: "11px"
+    }}
+  >
+    <thead>
+      <tr style={{ background: "#f8fafc", borderBottom: "2px solid #e2e8f0" }}>
+        <th style={{ ...thStickyStyle, textAlign: "left", padding: "12px" }}>Struktur</th>
+        <th style={thStickyStyle}>Anggaran</th>
+        <th style={thStickyStyle}>UM</th>
+        <th style={thStickyStyle}>Beban</th>
+        <th style={thStickyStyle}>Total</th>
+        <th style={thStickyStyle}>Saldo</th>
+        <th style={{ ...thStickyStyle, textAlign: "center" }}>%</th>
+      </tr>
+    </thead>
 
-            return (
-              <React.Fragment key={div}>
-                {/* BARIS DIVISI */}
+    <tbody>
+      {/* LOOPING DATA DIVISI */}
+      {Object.entries(tree).map(([div, d]: any) => {
+        const isExpanded = expandedDiv === div;
+        const serapanDiv = d.a > 0 ? (d.t / d.a) * 100 : 0;
+
+        return (
+          <React.Fragment key={div}>
+
+            {/* ================= DIVISI ROW ================= */}
+            <tr
+              onClick={() => setExpandedDiv(isExpanded ? null : div)}
+                style={{
+                background: "#f1f5f9",
+                fontWeight: 800,
+                cursor: "pointer",
+                borderBottom: "1px solid #e2e8f0"
+              }}
+            >
+              <td style={{ ...tdStyle, padding: "10px" }}>
+                {isExpanded ? "▼" : "▶"} {div}
+              </td>
+              <td style={tdRight}>{format(d.a)}</td>
+              <td style={tdRight}>{format(d.um)}</td>
+              <td style={tdRight}>{format(d.b)}</td>
+              <td style={tdRight}>{format(d.t)}</td>
+              <td style={tdRight}>{format(d.a - d.t)}</td>
+              <td style={{ ...tdCenter, color: serapanDiv < 70 ? "#dc2626" : "#006837" }}>
+                {serapanDiv.toFixed(1)}%
+              </td>
+            </tr>
+
+            {/* ================= ORGAN ROW ================= */}
+            {isExpanded &&
+              Object.entries(d.organs || {}).map(([org, o]: any) => (
                 <tr
-                  onClick={() => setExpandedDiv(isExpanded ? null : div)}
-                  style={{ background: "#f1f5f9", fontWeight: 800, cursor: "pointer", borderBottom: "1px solid #e2e8f0" }}
+                  key={org}
+                  {...rowHover("#ffffff", "#eefaf3")}
+                  style={{
+                    borderBottom: "1px solid #f1f5f9"
+                  }}
                 >
-                  <td style={{ ...tdStyle, padding: "10px" }}>{isExpanded ? "▼" : "▶"} {div}</td>
-                  <td style={tdRight}>{format(d.a)}</td>
-                  <td style={tdRight}>{format(d.um)}</td>
-                  <td style={tdRight}>{format(d.b)}</td>
-                  <td style={tdRight}>{format(d.t)}</td>
-                  <td style={tdRight}>{format(d.a - d.t)}</td>
-                  <td style={{ ...tdCenter, color: serapanDiv < 70 ? "#dc2626" : "#006837" }}>
-                    {serapanDiv.toFixed(1)}%
+                  <td style={{ ...tdStyle, paddingLeft: "30px", color: "#64748b" }}>
+                    ↳ {org}
+                  </td>
+                  <td style={tdRight}>{format(o.a)}</td>
+                  <td style={tdRight}>{format(o.um)}</td>
+                  <td style={tdRight}>{format(o.b)}</td>
+                  <td style={tdRight}>{format(o.t)}</td>
+                  <td style={tdRight}>{format(o.a - o.t)}</td>
+                  <td style={tdCenter}>
+                    {(o.a > 0 ? (o.t / o.a) * 100 : 0).toFixed(1)}%
                   </td>
                 </tr>
+              ))}
+          </React.Fragment>
+        );
+      })}
 
-                {/* BARIS ORGAN (Hanya muncul jika divisi di-klik) */}
-                {isExpanded &&
-                  Object.entries(d.organs || {}).map(([org, o]: any) => (
-                    <tr key={org} style={{ borderBottom: "1px solid #f1f5f9" }}>
-                      <td style={{ ...tdStyle, paddingLeft: "30px", color: "#64748b" }}>↳ {org}</td>
-                      <td style={tdRight}>{format(o.a)}</td>
-                      <td style={tdRight}>{format(o.um)}</td>
-                      <td style={tdRight}>{format(o.b)}</td>
-                      <td style={tdRight}>{format(o.t)}</td>
-                      <td style={tdRight}>{format(o.a - o.t)}</td>
-                      <td style={tdCenter}>{(o.a > 0 ? (o.t / o.a) * 100 : 0).toFixed(1)}%</td>
-                    </tr>
-                  ))}
-              </React.Fragment>
-            );
-          })}
+      {/* ================= GRAND TOTAL ================= */}
+      <tr
+        {...rowHover("#006837", "#0a7a45")}
+        style={{
+          background: "#006837",
+          color: "#fff",
+          fontWeight: 800
+        }}
+      >
+        <td style={{ ...tdStyle, padding: "12px" }}>GRAND TOTAL</td>
+        <td style={tdRight}>{format(grandTotal.a)}</td>
+        <td style={tdRight}>{format(grandTotal.um)}</td>
+        <td style={tdRight}>{format(grandTotal.b)}</td>
+        <td style={tdRight}>{format(grandTotal.t)}</td>
+        <td style={tdRight}>{format(grandTotal.a - grandTotal.t)}</td>
+        <td style={tdCenter}>{totalSerapan.toFixed(1)}%</td>
+      </tr>
 
-          {/* GRAND TOTAL - Ditempatkan tepat di bawah penutup looping map */}
-          <tr style={{ background: "#006837", color: "#fff", fontWeight: 800 }}>
-            <td style={{ ...tdStyle, padding: "12px" }}>GRAND TOTAL</td>
-            <td style={tdRight}>{format(grandTotal.a)}</td>
-            <td style={tdRight}>{format(grandTotal.um)}</td>
-            <td style={tdRight}>{format(grandTotal.b)}</td>
-            <td style={tdRight}>{format(grandTotal.t)}</td>
-            <td style={tdRight}>{format(grandTotal.a - grandTotal.t)}</td>
-            <td style={tdCenter}>{totalSerapan.toFixed(1)}%</td>
-          </tr>
-        </tbody>
-      </table>
-    </div>
-  </div>
+    </tbody>
+  </table>
+</div>
+</div>
 )}
 {activeTab === "detail" && (
   <div className="table-wrapper-detail">
@@ -1214,7 +1328,7 @@ const stickyCol = (left: number, enabled: boolean = true): CSSProperties => {
       style={{
         borderCollapse: "collapse",
         width: "100%",
-        minWidth: "900px", // lebih ringan dari 1200
+        minWidth: "900px",
         fontSize: "11px"
       }}
     >
@@ -1241,13 +1355,12 @@ const stickyCol = (left: number, enabled: boolean = true): CSSProperties => {
               {/* ================= DIVISI LEVEL 1 ================= */}
               <tr
                 onClick={() => setExpandedDiv(openDiv ? null : div)}
-                style={{
+                  style={{
                   background: "#f1f5f9",
                   fontWeight: 800,
                   fontSize: "12px",
                   cursor: "pointer"
                 }}
-                
               >
                 <td style={tdStyle}>
                   {openDiv ? "▼" : "▶"} {div}
@@ -1271,8 +1384,13 @@ const stickyCol = (left: number, enabled: boolean = true): CSSProperties => {
                     <React.Fragment key={org}>
 
                       <tr
-                        style={{ background: "#ffffff", fontWeight: 500, color: "#334155", cursor: "default" }}
-                        
+                        {...rowHover("#ffffff", "#eefaf3")}
+                        style={{
+                          background: "#ffffff",
+                          fontWeight: 500,
+                          color: "#334155",
+                          cursor: "default"
+                        }}
                       >
                         <td style={{ ...tdStyle, paddingLeft: "20px" }}>
                           ↳ {org}
@@ -1293,30 +1411,31 @@ const stickyCol = (left: number, enabled: boolean = true): CSSProperties => {
 
                         return (
                           <React.Fragment key={sub}>
-                          <tr
-                            onClick={() =>
-                              setExpandedSub(prev => ({
-                                ...prev,
-                                [sub]: !prev[sub]
-                              }))
-                            }
-                            style={{
-                              background: "#fcfcfd",
-                              cursor: "pointer",
-                              fontWeight: 500
-                            }}
-                           >
-                          
-                            <td style={{ ...tdStyle, paddingLeft: "40px" }}>
-                              {expandedSub[sub] ? "▼" : "▶"} {sub}
-                            </td>
-                            <td style={tdRight}>{format(s.a)}</td>
-                            <td style={tdRight}>{format(s.um)}</td>
-                            <td style={tdRight}>{format(s.b)}</td>
-                            <td style={tdRight}>{format(s.t)}</td>
-                            <td style={tdRight}>{format(s.a - s.t)}</td>
-                            <td style={tdCenter}>{serapanSub.toFixed(1)}%</td>
-                          </tr>
+                            <tr
+                              onClick={() =>
+                                setExpandedSub(prev => ({
+                                  ...prev,
+                                  [sub]: !prev[sub]
+                                }))
+                              }
+                              {...rowHover("#fcfcfd", "#f0fdf4")}
+                              style={{
+                                background: "#fcfcfd",
+                                cursor: "pointer",
+                                fontWeight: 500
+                              }}
+                            >
+                              <td style={{ ...tdStyle, paddingLeft: "40px" }}>
+                                {expandedSub[sub] ? "▼" : "▶"} {sub}
+                              </td>
+                              <td style={tdRight}>{format(s.a)}</td>
+                              <td style={tdRight}>{format(s.um)}</td>
+                              <td style={tdRight}>{format(s.b)}</td>
+                              <td style={tdRight}>{format(s.t)}</td>
+                              <td style={tdRight}>{format(s.a - s.t)}</td>
+                              <td style={tdCenter}>{serapanSub.toFixed(1)}%</td>
+                            </tr>
+
                             {/* ================= AKUN BUDGET LEVEL 4 ================= */}
                             {expandedSub[sub] &&
                               Object.entries(s.akuns || {}).map(([akun, a]: any) => {
@@ -1325,10 +1444,13 @@ const stickyCol = (left: number, enabled: boolean = true): CSSProperties => {
                                 return (
                                   <tr
                                     key={akun}
+                                    {...rowHover("#ffffff", "#f8fafc")}
                                     style={{
-                                      background: "#ffffff", fontWeight: 400, color: THEME.textSoft, cursor: "default"
+                                      background: "#ffffff",
+                                      fontWeight: 400,
+                                      color: THEME.textSoft,
+                                      cursor: "default"
                                     }}
-                                    
                                   >
                                     <td style={{ ...tdStyle, paddingLeft: "60px", color: THEME.textSoft }}>
                                       ▸ {akun}
@@ -1351,12 +1473,14 @@ const stickyCol = (left: number, enabled: boolean = true): CSSProperties => {
             </React.Fragment>
           );
         })}
-                {/* GRAND TOTAL */}
+
+        {/* ================= GRAND TOTAL ================= */}
         <tr
+          {...rowHover(THEME.primary, "#0a7a45")}
           style={{
             background: THEME.primary,
-            color: "#fff", 
-            fontWeight: "800", 
+            color: "#fff",
+            fontWeight: 800,
             borderTop: "2px solid #cbd5e1",
             fontSize: "12px"
           }}
@@ -1374,7 +1498,6 @@ const stickyCol = (left: number, enabled: boolean = true): CSSProperties => {
           <td style={{ ...tdCenter, fontWeight: 800 }}>
             {totalSerapan.toFixed(1)}%
           </td>
-          <td style={{ ...tdStyle, color: "#fff" }}>GRAND TOTAL</td>
         </tr>
       </tbody>
     </table>
@@ -1383,109 +1506,121 @@ const stickyCol = (left: number, enabled: boolean = true): CSSProperties => {
 
 {activeTab === "reportDD" && (
   <div className="report-dd-wrapper" style={{ width: "100%", padding: "10px" }}>
+
     <h3 style={{ fontSize: "18px", color: "#006837", marginBottom: "20px", fontWeight: "700" }}>
       Report Dompet Dhuafa
     </h3>
 
-    {/* ================= KPI SECTION (Bisa Scroll Horizontal di Mobile) ================= */}
-    {/* ================= KPI SECTION (Desktop: Side-by-Side | Mobile: Wrapped) ================= */}
-<div 
-  className="kpi-responsive-wrapper" 
-  style={{ 
-    width: "100%", 
-    marginBottom: "25px" 
-  }}
->
-  <div 
-    className="kpi-container" 
-    style={{ 
-      display: "flex", 
-      gap: "12px", 
-      flexWrap: "wrap", // Desktop menyamping, Mobile otomatis turun/menyesuaikan
-      width: "100%"
-    }}
-  >
-    {[
-      { t: "ANGGARAN", v: grandTotal.a, c: "#111" },
-      { t: "UM", v: grandTotal.um, c: "#0284c7" },
-      { t: "BEBAN", v: grandTotal.b, c: "#f59e0b" },
-      { t: "TOTAL TRX", v: grandTotal.t, c: "#111" },
-      { t: "SALDO", v: grandTotal.a - grandTotal.t, c: "#dc2626" },
-      { t: "SERAPAN", v: getSerapan(grandTotal.t, grandTotal.a), c: "#006837", isPct: true }
-    ].map((item: any, idx: number) => (
-      <div 
-        key={idx} 
-        style={{ 
-          // Desktop: bagi 6 kolom rata | Mobile: ambil 100% lebar (dikurangi gap)
-          flex: "1 1 calc(16.66% - 12px)", 
-          minWidth: "160px", // Mencegah card terlalu gepeng di mobile
-          background: "#fff", 
-          padding: "15px", 
-          borderRadius: "12px", 
-          border: "1px solid #e2e8f0",
-          boxShadow: "0 1px 2px rgba(0,0,0,0.05)"
+    {/* ================= KPI SECTION ================= */}
+    <div className="kpi-responsive-wrapper" style={{ width: "100%", marginBottom: "25px" }}>
+      <div
+        className="kpi-container"
+        style={{
+          display: "flex",
+          gap: "12px",
+          flexWrap: "wrap",
+          width: "100%"
         }}
       >
-        <p style={{ fontSize: "10px", color: "#64748b", fontWeight: "bold", marginBottom: "5px", textTransform: "uppercase" }}>
-          {item.t}
-        </p>
-        <p style={{ fontSize: "14px", fontWeight: "800", color: item.c, margin: 0 }}>
-          {item.isPct ? item.v : format(Number(item.v))}
-        </p>
+        {[
+          { t: "ANGGARAN", v: grandTotal.a, c: "#111" },
+          { t: "UM", v: grandTotal.um, c: "#0284c7" },
+          { t: "BEBAN", v: grandTotal.b, c: "#f59e0b" },
+          { t: "TOTAL TRX", v: grandTotal.t, c: "#111" },
+          { t: "SALDO", v: grandTotal.a - grandTotal.t, c: "#dc2626" },
+          { t: "SERAPAN", v: getSerapan(grandTotal.t, grandTotal.a), c: "#006837", isPct: true }
+        ].map((item: any, idx: number) => (
+          <div
+            key={idx}
+            onMouseEnter={() => setHoveredKpi(idx)}
+            onMouseLeave={() => setHoveredKpi(null)}
+            style={{
+              flex: "1 1 calc(16.66% - 12px)",
+              minWidth: "160px",
+              background: hoveredKpi === idx ? "#f0fdf4" : "#fff",
+              padding: "15px",
+              borderRadius: "12px",
+              border: hoveredKpi === idx ? "1px solid #006837" : "1px solid #e2e8f0",
+              boxShadow: hoveredKpi === idx
+                ? "0 8px 20px rgba(0,104,55,0.15)"
+                : "0 1px 2px rgba(0,0,0,0.05)",
+              transform: hoveredKpi === idx ? "scale(1.03)" : "scale(1)",
+              transition: "all 0.2s ease-in-out",
+              cursor: "pointer"
+            }}
+          >
+            <p style={{
+              fontSize: "10px",
+              color: "#64748b",
+              fontWeight: "bold",
+              marginBottom: "5px",
+              textTransform: "uppercase"
+            }}>
+              {item.t}
+            </p>
+
+            <p style={{
+              fontSize: "14px",
+              fontWeight: "800",
+              color: item.c,
+              margin: 0
+            }}>
+              {item.isPct ? item.v : format(Number(item.v))}
+            </p>
+          </div>
+        ))}
       </div>
-    ))}
-  </div>
-</div>
-    {/* ================= ASNAF & CHART (50:50 SPLIT) ================= */}
-    <div 
-      className="asnaf-chart-row" 
-      style={{ 
-        display: "flex", 
-        gap: "20px", 
-        flexWrap: "wrap", // Supaya kalau layar sangat kecil otomatis tumpuk atas-bawah
-        marginBottom: "25px" 
-      }}
-    >
-      {/* KIRI: DISTRIBUSI ASNAF (50%) */}
+    </div>
+
+    {/* ================= ASNAF & CHART ================= */}
+    <div className="asnaf-chart-row" style={{ display: "flex", gap: "20px", flexWrap: "wrap", marginBottom: "25px" }}>
+
       <div style={{ flex: "1 1 400px", minWidth: "300px" }}>
-        <p style={{ fontSize: "14px", fontWeight: "bold", marginBottom: "15px", color: "#334155" }}>Distribusi Asnaf</p>
+        <p style={{ fontSize: "14px", fontWeight: "bold", marginBottom: "15px", color: "#334155" }}>
+          Distribusi Asnaf
+        </p>
+
         <div style={{ display: "flex", flexDirection: "column", gap: "8px" }}>
           {Object.entries(asnafMap).map(([k, v]: any) => (
-            <div 
-              key={k} 
-              style={{ 
-                display: "flex", 
-                justifyContent: "space-between", 
+            <div
+              key={k}
+              style={{
+                display: "flex",
+                justifyContent: "space-between",
                 alignItems: "center",
-                padding: "12px 15px", 
-                background: "#f8fafc", 
+                padding: "12px 15px",
+                background: "#f8fafc",
                 borderRadius: "8px",
                 border: "1px solid #f1f5f9"
               }}
             >
-              <span style={{ fontSize: "11px", fontWeight: "700", color: "#64748b", textTransform: "uppercase" }}>{k}</span>
-              <span style={{ fontSize: "13px", fontWeight: "700", color: "#10b981" }}>{format(v)}</span>
+              <span style={{ fontSize: "11px", fontWeight: "700", color: "#64748b", textTransform: "uppercase" }}>
+                {k}
+              </span>
+              <span style={{ fontSize: "13px", fontWeight: "700", color: "#10b981" }}>
+                {format(v)}
+              </span>
             </div>
           ))}
         </div>
       </div>
 
-      {/* KANAN: CHART (50%) */}
-      <div 
-        style={{ 
-          flex: "1 1 400px", 
-          minWidth: "300px", 
-          background: "#fff", 
-          padding: "20px", 
-          borderRadius: "12px", 
-          border: "1px solid #e2e8f0",
-          display: "flex",
-          flexDirection: "column",
-          alignItems: "center",
-          justifyContent: "center"
-        }}
-      >
-        <p style={{ fontSize: "12px", fontWeight: "bold", marginBottom: "10px", color: "#334155" }}>Prog vs Ops</p>
+      <div style={{
+        flex: "1 1 400px",
+        minWidth: "300px",
+        background: "#fff",
+        padding: "20px",
+        borderRadius: "12px",
+        border: "1px solid #e2e8f0",
+        display: "flex",
+        flexDirection: "column",
+        alignItems: "center",
+        justifyContent: "center"
+      }}>
+        <p style={{ fontSize: "12px", fontWeight: "bold", marginBottom: "10px", color: "#334155" }}>
+          Prog vs Ops
+        </p>
+
         <ResponsiveContainer width="100%" height={250}>
           <PieChart>
             <Pie
@@ -1508,16 +1643,9 @@ const stickyCol = (left: number, enabled: boolean = true): CSSProperties => {
       </div>
     </div>
 
-    {/* ================= TABLE (FIXED WRAPPER) ================= */}
+    {/* ================= TABLE ================= */}
     <div className="table-wrapper-report">
-      <table
-        style={{
-          width: "100%",
-          minWidth: "900px",
-          borderCollapse: "collapse",
-          fontSize: "11px"
-        }}
-      >
+      <table style={{ width: "100%", minWidth: "900px", borderCollapse: "collapse", fontSize: "11px" }}>
         <thead>
           <tr>
             <th style={thStickyStyle}>Struktur / Akun DD</th>
@@ -1537,6 +1665,7 @@ const stickyCol = (left: number, enabled: boolean = true): CSSProperties => {
 
             return (
               <React.Fragment key={akunDD}>
+
                 <tr
                   onClick={() => {
                     setExpandedDD(openDD ? null : akunDD);
@@ -1566,7 +1695,11 @@ const stickyCol = (left: number, enabled: boolean = true): CSSProperties => {
 
                     return (
                       <React.Fragment key={prog}>
-                        <tr onClick={() => setExpandedProg(openProg ? null : prog)}>
+
+                        <tr
+                          onClick={() => setExpandedProg(openProg ? null : prog)}
+                          style={{ cursor: "pointer" }}
+                        >
                           <td style={{ ...tdStyle, paddingLeft: "20px" }}>
                             {openProg ? "▼" : "▶"} {prog}
                           </td>
@@ -1607,12 +1740,12 @@ const stickyCol = (left: number, enabled: boolean = true): CSSProperties => {
             <td style={tdRight}>{format(grandTotal.a - grandTotal.t)}</td>
             <td style={tdCenter}>{totalSerapan.toFixed(1)}%</td>
           </tr>
+
         </tbody>
       </table>
     </div>
-
   </div>
-)}
-</div>
-</div>
+        )}
+    </div>
+  </div>
   )}
