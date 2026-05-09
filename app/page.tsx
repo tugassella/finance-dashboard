@@ -1474,6 +1474,7 @@ const stickyCol = (left: number, enabled: boolean = true): CSSProperties => {
           <td style={{ ...tdCenter, fontWeight: 800 }}>
             {totalSerapan.toFixed(1)}%
           </td>
+          <td style={{ ...tdStyle, color: "#fff" }}>GRAND TOTAL</td>
         </tr>
       </tbody>
     </table>
@@ -1481,7 +1482,7 @@ const stickyCol = (left: number, enabled: boolean = true): CSSProperties => {
 )}
 
 {activeTab === "reportDD" && (
-  <div style={{ width: "100%", overflowX: "auto" }}>
+  <div style={{ width: "100%" }}>
     <h3 style={{ fontSize: "16px", color: "#006837", marginBottom: "20px", fontWeight: "700" }}>
       Report Dompet Dhuafa
     </h3>
@@ -1498,22 +1499,8 @@ const stickyCol = (left: number, enabled: boolean = true): CSSProperties => {
     </div>
 
     {/* ================= KPI TAHUNAN ================= */}
-      <div
-        className="kpi-scroll"
-        style={{
-          overflowX: "auto",
-          WebkitOverflowScrolling: "touch",
-          paddingBottom: "8px"
-          }}
-      >
-      <div
-        style={{
-          display: "flex",
-          gap: "10px",
-          minWidth: "max-content",
-          paddingRight: "10px"
-          }}
-      >
+    <div style={{ overflowX: "auto", WebkitOverflowScrolling: "touch", marginBottom: "20px" }}>
+    <div style={{ display: "flex", gap: "10px", minWidth: "max-content" }}>
       <StatCard title="Anggaran Tahunan" value={format(totalAnggaranTahunan)} />
       <StatCard title="Transaksi Tahunan" value={format(totalTransaksiTahunan)} color="#0284c7" />
       <StatCard
@@ -1694,6 +1681,7 @@ const stickyCol = (left: number, enabled: boolean = true): CSSProperties => {
               <td style={tdRight}>{format(grandTotal.t)}</td>
               <td style={tdRight}>{format(grandTotal.a - grandTotal.t)}</td>
               <td style={tdCenter}>{totalSerapan.toFixed(1)}%</td>
+              <td style={{ ...tdStyle, color: "#fff" }}>GRAND TOTAL</td>
             </tr>
           </tbody>
         </table>
