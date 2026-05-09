@@ -1084,6 +1084,7 @@ const stickyCol = (left: number): CSSProperties => ({
               position: "relative"
             }}
           >
+            <div style={{ overflowX: "auto", width: "100%" }}>
             <table style={tableStyle}>
               <thead>
                 <tr>
@@ -1140,7 +1141,7 @@ const stickyCol = (left: number): CSSProperties => ({
                              e.currentTarget.style.background = THEME.primaryHover; // beda dikit biar hierarki keliatan
                             }}
                             onMouseLeave={(e) => {
-                             e.currentTarget.style.background = "#transparent";
+                             e.currentTarget.style.background = "#dde7e2";
                             }}
                           >
                             <td style={{ paddingLeft: "25px" }}>↳ {org}</td>
@@ -1181,14 +1182,22 @@ const stickyCol = (left: number): CSSProperties => ({
             </table>
           </div>
         </div>
-     )}
+     </div>
+  )}
 {activeTab === "detail" && (
-  <div className="table-wrapper" style={{ width: "100%", overflow: "auto" }}>
+  <div
+    className="table-wrapper"
+    style={{
+      width: "100%",
+      overflowX: "auto",
+      WebkitOverflowScrolling: "touch"
+    }}
+  >
     <table
       style={{
         borderCollapse: "collapse",
-        minWidth: "1200px",
         width: "100%",
+        minWidth: "900px", // lebih ringan dari 1200
         fontSize: "11px"
       }}
     >
@@ -1225,7 +1234,7 @@ const stickyCol = (left: number): CSSProperties => ({
                   e.currentTarget.style.background = THEME.primaryHover;
                 }}
                 onMouseLeave={(e) => {
-                  e.currentTarget.style.background = "#transparent";
+                  e.currentTarget.style.background = "#dde7e2";
                 }}
               >
                 <td style={{ ...tdStyle, ...stickyLeft(0, THEME.primarySoft) }}>
@@ -1255,7 +1264,7 @@ const stickyCol = (left: number): CSSProperties => ({
                           e.currentTarget.style.background = THEME.primaryHover;
                         }}
                         onMouseLeave={(e) => {
-                          e.currentTarget.style.background = "#transparent";
+                          e.currentTarget.style.background = "#dde7e2";
                         }}
                       >
                         <td style={{ ...tdStyle, paddingLeft: "20px" }}>
@@ -1290,7 +1299,7 @@ const stickyCol = (left: number): CSSProperties => ({
                               fontWeight: 500
                             }}
                             onMouseEnter={(e) => (e.currentTarget.style.background = THEME.primaryHover)}
-                            onMouseLeave={(e) => (e.currentTarget.style.background = "#transparent")}>
+                            onMouseLeave={(e) => (e.currentTarget.style.background = "#dde7e2")}>
                           
                             <td style={{ ...tdStyle, paddingLeft: "40px" }}>
                               {expandedSub[sub] ? "▼" : "▶"} {sub}
@@ -1317,7 +1326,7 @@ const stickyCol = (left: number): CSSProperties => ({
                                       (e.currentTarget.style.background = THEME.primaryHover)
                                     }
                                     onMouseLeave={(e) =>
-                                      (e.currentTarget.style.background = "#transparent")
+                                      (e.currentTarget.style.background = "#dde7e2")
                                     }
                                   >
                                     <td style={{ ...tdStyle, paddingLeft: "60px", color: THEME.textSoft }}>
@@ -1370,7 +1379,7 @@ const stickyCol = (left: number): CSSProperties => ({
 )}
 
 {activeTab === "reportDD" && (
-  <div style={{ overflowX: "auto" }}>
+  <div style={{ width: "100%", overflowX: "hidden" }}>
     <h3 style={{ fontSize: "16px", color: "#006837", marginBottom: "20px", fontWeight: "700" }}>
       Report Dompet Dhuafa
     </h3>
@@ -1396,8 +1405,8 @@ const stickyCol = (left: number): CSSProperties => ({
     <div
       style={{
         display: "flex",
+        flexWrap: "wrap",
         gap: "10px",
-        minWidth: "max-content",
         marginBottom: "25px"
       }}
     >
@@ -1416,13 +1425,20 @@ const stickyCol = (left: number): CSSProperties => ({
     </div>
 
     {/* ================= ASNAF + PIE ================= */}
-    <div style={{ display: "flex", gap: "20px", marginBottom: "30px", minWidth: "max-content" }}>
+    <div
+      style={{
+        display: "flex",
+        flexWrap: "wrap",
+        gap: "20px",
+        marginBottom: "30px"
+      }}
+    >
       <div style={{ flex: 2 }}>
         <p style={{ fontSize: "11px", fontWeight: "bold", marginBottom: "8px" }}>
           Distribusi Asnaf
         </p>
 
-        <div style={{ display: "grid", gridTemplateColumns: "repeat(2, 1fr)", gap: "10px" }}>
+        <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(140px, 1fr))", gap: "10px" }}>
           {Object.entries(asnafMap).map(([k, v]: any) => (
             <StatCard key={k} title={k} value={format(v)} color="#10b981" />
           ))}
@@ -1442,7 +1458,7 @@ const stickyCol = (left: number): CSSProperties => ({
           Prog vs Ops
         </p>
 
-        <div style={{ width: "100%", height: "140px" }}>
+        <div style={{ width: "100%", height: "200px", minWidth: "220px" }}>
           <ResponsiveContainer width="100%" height="100%">
             <PieChart>
               <Pie
@@ -1466,7 +1482,7 @@ const stickyCol = (left: number): CSSProperties => ({
 
     {/* ================= TABLE ================= */}
     <div style={{ width: "100%", overflowX: "auto" }}>
-      <div style={{ minWidth: "1100px" }}>
+      <div style={{ minWidth: "900px" }}>
         <table
           style={{
             width: "100%",
