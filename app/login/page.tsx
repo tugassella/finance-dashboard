@@ -44,7 +44,7 @@ export default function LoginPage() {
   // USER TERDAFTAR
   const allowedUsers = [
     {
-      username: "sella",
+      username: "admin",
       password: "admin123"
     },
     {

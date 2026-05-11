@@ -13,8 +13,8 @@ const geistMono = Geist_Mono({
 });
 
 export const metadata = {
-  title: "GENESIS",
-  description: "Great Edunesia Executive Strategic Insight System",
+  title: "GENDIS - Great Edunesia Dashboard Insight System",
+  description: "Great Edunesia Dashboard Insight System",
   icons: {
     icon: "/Main Logo Title Great Edunesia.png",
   },
