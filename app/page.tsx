@@ -71,7 +71,7 @@ export default function ExecutiveDashboard() {
   const [loading, setLoading] = useState(true);
   const [activeTab, setActiveTab] = useState("summary"); 
   const [tahun, setTahun] = useState("2026");
-  const [jenisDana, setJenisDana] = useState("1. Regular");
+  const [jenisDana, setJenisDana] = useState<string[]>([]);
   const [selectedBulan, setSelectedBulan] = useState<string[]>([]);
   const [showBulan, setShowBulan] = useState(false);
   const [searchTerm, setSearchTerm] = useState("");
@@ -151,33 +151,57 @@ export default function ExecutiveDashboard() {
   const listBulan = [...new Set(safeData.map(d => String(d.Bulan)))].filter(Boolean).sort((a,b) => Number(a)-Number(b));
   const listJenisDana = [...new Set(safeData.map(d => String(d["Jenis Dana"])))].filter(Boolean);
   
-  // ==============================
+ // ==============================
 // FILTER SECTION
 // ==============================
+
+// ✅ MULTI SELECT JENIS DANA
+
+// ✅ HANDLE CHECKBOX JENIS DANA
+const handleJenisDanaChange = (value: string) => {
+  setJenisDana((prev) =>
+    prev.includes(value)
+      ? prev.filter((v) => v !== value)
+      : [...prev, value]
+  );
+};
 
 // ✅ FILTER TABLE & CHART (multi select bebas)
 const filtered = data.filter(d =>
   (tahun === "All" || String(d.Tahun) === tahun) &&
-  (jenisDana === "All" || d["Jenis Dana"] === jenisDana) &&
-  (selectedBulan.length === 0 || selectedBulan.includes(String(d.Bulan)))
+  (
+    jenisDana.length === 0 ||
+    jenisDana.includes(d["Jenis Dana"])
+  ) &&
+  (
+    selectedBulan.length === 0 ||
+    selectedBulan.includes(String(d.Bulan))
+  )
 );
+
 const trendBulanan = Object.values(
   filtered.reduce((acc: any, d: any) => {
     const bulan = Number(d.Bulan);
+
     if (!bulan) return acc;
 
     if (!acc[bulan]) {
       acc[bulan] = {
-        name: `Bulan ${bulan}`, // Label untuk sumbu X grafik
+        name: `Bulan ${bulan}`,
         bulan,
         anggaran: 0,
-        realisasi: 0
+        realisasi: 0,
       };
     }
 
-    // Pastikan nama field sesuai dengan data Anda
-    const nilaiAnggaran = parse(d["Anggaran Bulanan"] || d["Anggaran"]);
-    const nilaiRealisasi = parse(d["UM Bulan"]) + parse(d["Beban Bulan"]);
+    // ✅ pastikan field sesuai data
+    const nilaiAnggaran = parse(
+      d["Anggaran Bulanan"] || d["Anggaran"]
+    );
+
+    const nilaiRealisasi =
+      parse(d["UM Bulan"]) +
+      parse(d["Beban Bulan"]);
 
     acc[bulan].anggaran += nilaiAnggaran;
     acc[bulan].realisasi += nilaiRealisasi;
@@ -197,14 +221,20 @@ const maxBulan = selectedBulan.length > 0
 // ✅ FILTER YTD (Jan → bulan terakhir)
 const filteredYTD = data.filter(d =>
   (tahun === "All" || String(d.Tahun) === tahun) &&
-  (jenisDana === "All" || d["Jenis Dana"] === jenisDana) &&
+  (
+    jenisDana.length === 0 ||
+    jenisDana.includes(d["Jenis Dana"])
+  ) &&
   Number(d.Bulan) <= maxBulan
 );
 
 // ✅ FILTER FULL YEAR (khusus ambil anggaran tahunan)
 const filteredFullYear = data.filter(d =>
   (tahun === "All" || String(d.Tahun) === tahun) &&
-  (jenisDana === "All" || d["Jenis Dana"] === jenisDana)
+  (
+    jenisDana.length === 0 ||
+    jenisDana.includes(d["Jenis Dana"])
+  )
 );
 
 // ==============================
@@ -259,7 +289,10 @@ const serapanTahunan =
 
     const filteredYTD = data.filter(d =>
       (tahun === "All" || String(d.Tahun) === tahun) &&
-      (jenisDana === "All" || d["Jenis Dana"] === jenisDana) &&
+      (
+        jenisDana.length === 0 ||
+        jenisDana.includes(d["Jenis Dana"])
+      ) &&
       Number(d.Bulan) <= maxBulan
     );
   }, {});
