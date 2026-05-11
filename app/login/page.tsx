@@ -201,7 +201,7 @@ export default function LoginPage() {
                 letterSpacing: "-0.5px"
               }}
             >
-              GENESIS
+              GENDIS
             </h1>
 
             <p
@@ -212,7 +212,7 @@ export default function LoginPage() {
                 lineHeight: 1.6
               }}
             >
-              Great Edunesia Executive Strategic Insight System
+              Great Edunesia Dashboard Insight System
             </p>
           </div>
 
