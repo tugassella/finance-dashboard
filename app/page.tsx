@@ -72,6 +72,7 @@ export default function ExecutiveDashboard() {
   const [activeTab, setActiveTab] = useState("summary"); 
   const [tahun, setTahun] = useState("2026");
   const [jenisDana, setJenisDana] = useState<string[]>([]);
+  const [showJenisDana, setShowJenisDana] = useState(false);
   const [selectedBulan, setSelectedBulan] = useState<string[]>([]);
   const [showBulan, setShowBulan] = useState(false);
   const [searchTerm, setSearchTerm] = useState("");
@@ -1076,7 +1077,94 @@ const stickyCol = (left: number, enabled: boolean = true): CSSProperties => {
           }}
         >
           <FilterSelect label="Tahun" value={tahun} options={listTahun} onChange={setTahun} />
-          <FilterSelect label="Jenis Dana" value={jenisDana} options={listJenisDana} onChange={setJenisDana} />
+          <div style={{ position: "relative" }}>
+  <label
+    style={{
+      display: "block",
+      fontSize: "11px",
+      fontWeight: "bold",
+      color: "#475569",
+      marginBottom: "4px"
+    }}
+  >
+    Jenis Dana
+  </label>
+
+  <button
+    onClick={() => setShowJenisDana(!showJenisDana)}
+    style={{
+      padding: "8px 12px",
+      borderRadius: "6px",
+      border: "1px solid #cbd5e1",
+      background: "#fff",
+      fontSize: "12px",
+      minWidth: "180px",
+      textAlign: "left"
+    }}
+  >
+    {jenisDana.length === 0
+      ? "Semua Jenis Dana"
+      : `${jenisDana.length} Jenis Dana`} ▼
+  </button>
+
+  {showJenisDana && (
+    <div
+      style={{
+        position: "absolute",
+        zIndex: 10,
+        background: "#fff",
+        border: "1px solid #cbd5e1",
+        padding: "10px",
+        width: "240px",
+        borderRadius: "8px",
+        boxShadow: "0 10px 15px rgba(0,0,0,0.1)",
+        marginTop: "5px"
+      }}
+    >
+      <div
+        style={{
+          display: "flex",
+          flexDirection: "column",
+          gap: "8px"
+        }}
+      >
+        {listJenisDana.map(item => (
+          <label
+            key={item}
+            style={{
+              display: "flex",
+              alignItems: "center",
+              gap: "6px",
+              fontSize: "12px"
+            }}
+          >
+            <input
+              type="checkbox"
+              checked={jenisDana.includes(item)}
+              onChange={() => handleJenisDanaChange(item)}
+            />
+            {item}
+          </label>
+        ))}
+      </div>
+
+      <button
+        onClick={() => setShowJenisDana(false)}
+        style={{
+          width: "100%",
+          marginTop: "12px",
+          background: "#006837",
+          color: "#fff",
+          border: "none",
+          padding: "6px",
+          borderRadius: "4px"
+        }}
+      >
+        Tutup
+      </button>
+    </div>
+  )}
+</div>
           <div style={{ position: "relative" }}>
             <label style={{ display: "block", fontSize: "11px", fontWeight: "bold", color: "#475569", marginBottom: "4px" }}>Periode Bulan</label>
             <button onClick={() => setShowBulan(!showBulan)} style={{ padding: "8px 12px", borderRadius: "6px", border: "1px solid #cbd5e1", background: "#fff", fontSize: "12px", minWidth: "140px", textAlign: "left" }}>
