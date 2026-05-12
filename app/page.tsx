@@ -77,13 +77,15 @@ export default function ExecutiveDashboard() {
   const [showBulan, setShowBulan] = useState(false);
   const [searchTerm, setSearchTerm] = useState("");
   const [showUMModal, setShowUMModal] = useState(false);
-  const [expandedDD, setExpandedDD] = useState<string | null>(null);
-  const [expandedProg, setExpandedProg] = useState<string | null>(null);
+  const [expandedDD, setExpandedDD] = useState<string[]>([]);
+  const [expandedProg, setExpandedProg] = useState<string[]>([]);
   const [expandedDiv, setExpandedDiv] = useState<string | null>(null);
   const [isPrint, setIsPrint] = useState(false);
   const [expanded, setExpanded] = useState<Record<string, boolean>>({});
   const [expandedSub, setExpandedSub] = useState<Record<string, boolean>>({});
   const [hoveredKpi, setHoveredKpi] = useState<number | null>(null);
+  
+
   useEffect(() => {
   // CEK LOGIN
   const isLoggedIn = localStorage.getItem("isLoggedIn");
@@ -1269,19 +1271,49 @@ const stickyCol = (left: number, enabled: boolean = true): CSSProperties => {
       <StatCard title="Serapan" value={getSerapan(grandTotal.t, grandTotal.a)} color="#0284c7" />
     </div>
 
-    <div className="genesis-kpi" style={{ display: "flex", gap: "10px", flexWrap: "wrap", marginBottom: "20px" }}>
-      <StatCard title="Anggaran Tahunan" value={format(totalAnggaranTahunan)} />
-      <StatCard title={`Transaksi YTD (s.d Bln ${maxBulan})`} value={format(totalTransaksiTahunan)} />
+        <div
+      className="genesis-kpi"
+      style={{
+        display: "flex",
+        gap: "10px",
+        flexWrap: "wrap",
+        marginBottom: "20px",
+      }}
+    >
+      <StatCard
+        title="Anggaran Tahunan"
+        value={format(totalAnggaranTahunan)}
+      />
+
+      <StatCard
+        title={`Transaksi YTD (s.d Bln ${maxBulan})`}
+        value={format(totalTransaksiTahunan)}
+      />
+
       <StatCard
         title="Saldo YTD"
         value={format(totalSaldoTahunan)}
         color={totalSaldoTahunan < 0 ? "#dc2626" : "#111"}
       />
+
       <StatCard
         title="Serapan YTD"
         value={`${serapanTahunan.toFixed(1)}%`}
-        color={serapanTahunan > 100 ? "#dc2626" : serapanTahunan < 70 ? "#f59e0b" : "#006837"}
+        color={
+          "#070707"
+        }
       />
+
+      {/* KPI BARU — TARGET SERAPAN TAHUNAN */}
+      <StatCard
+        title={`Target Serapan s.d Bln ${maxBulan} (${(
+          (maxBulan / 12) *
+          100
+        ).toFixed(1)}%)`}
+        value={format((maxBulan / 12) * totalAnggaranTahunan)}
+        color="#f59e0b"
+      />
+
     </div>
 
     {/* 3. CHARTS SECTION (BAR & PIE) */}
@@ -1632,66 +1664,127 @@ const stickyCol = (left: number, enabled: boolean = true): CSSProperties => {
       Report Dompet Dhuafa
     </h3>
 
-    {/* ================= KPI SECTION ================= */}
-    <div className="kpi-responsive-wrapper" style={{ width: "100%", marginBottom: "25px" }}>
+    {/* ================= KPI BULANAN ================= */}
+<div className="kpi-responsive-wrapper" style={{ width: "100%", marginBottom: "25px" }}>
+  <div
+    className="kpi-container"
+    style={{
+      display: "flex",
+      gap: "12px",
+      flexWrap: "wrap",
+      width: "100%"
+    }}
+  >
+    {[
+      { t: "ANGGARAN", v: grandTotal.a, c: "#0284c7" },
+
+      { t: "UM", v: grandTotal.um, c: "#0284c7" },
+
+      { t: "BEBAN", v: grandTotal.b, c: "#0284c7" },
+
+      { t: "TOTAL TRX", v: grandTotal.t, c: "#0284c7" },
+
+      {
+        t: "SALDO",
+        v: grandTotal.a - grandTotal.t,
+        c: "#0284c7"
+      },
+
+      {
+        t: "SERAPAN",
+        v: getSerapan(grandTotal.t, grandTotal.a),
+        c: "#0284c7",
+        isPct: true
+      }
+    ].map((item: any, idx: number) => (
       <div
-        className="kpi-container"
+        key={idx}
+        onMouseEnter={() => setHoveredKpi(idx)}
+        onMouseLeave={() => setHoveredKpi(null)}
         style={{
-          display: "flex",
-          gap: "12px",
-          flexWrap: "wrap",
-          width: "100%"
+          flex: "1 1 calc(16.66% - 12px)",
+          minWidth: "160px",
+          background: hoveredKpi === idx ? "#f0fdf4" : "#fff",
+          padding: "15px",
+          borderRadius: "12px",
+          border: hoveredKpi === idx ? "1px solid #006837" : "1px solid #e2e8f0",
+          boxShadow: hoveredKpi === idx
+            ? "0 8px 20px rgba(0,104,55,0.15)"
+            : "0 1px 2px rgba(0,0,0,0.05)",
+          transform: hoveredKpi === idx ? "scale(1.03)" : "scale(1)",
+          transition: "all 0.2s ease-in-out",
+          cursor: "pointer"
         }}
       >
-        {[
-          { t: "ANGGARAN", v: grandTotal.a, c: "#111" },
-          { t: "UM", v: grandTotal.um, c: "#0284c7" },
-          { t: "BEBAN", v: grandTotal.b, c: "#f59e0b" },
-          { t: "TOTAL TRX", v: grandTotal.t, c: "#111" },
-          { t: "SALDO", v: grandTotal.a - grandTotal.t, c: "#dc2626" },
-          { t: "SERAPAN", v: getSerapan(grandTotal.t, grandTotal.a), c: "#006837", isPct: true }
-        ].map((item: any, idx: number) => (
-          <div
-            key={idx}
-            onMouseEnter={() => setHoveredKpi(idx)}
-            onMouseLeave={() => setHoveredKpi(null)}
-            style={{
-              flex: "1 1 calc(16.66% - 12px)",
-              minWidth: "160px",
-              background: hoveredKpi === idx ? "#f0fdf4" : "#fff",
-              padding: "15px",
-              borderRadius: "12px",
-              border: hoveredKpi === idx ? "1px solid #006837" : "1px solid #e2e8f0",
-              boxShadow: hoveredKpi === idx
-                ? "0 8px 20px rgba(0,104,55,0.15)"
-                : "0 1px 2px rgba(0,0,0,0.05)",
-              transform: hoveredKpi === idx ? "scale(1.03)" : "scale(1)",
-              transition: "all 0.2s ease-in-out",
-              cursor: "pointer"
-            }}
-          >
-            <p style={{
-              fontSize: "10px",
-              color: "#64748b",
-              fontWeight: "bold",
-              marginBottom: "5px",
-              textTransform: "uppercase"
-            }}>
-              {item.t}
-            </p>
+        <p
+          style={{
+            fontSize: "10px",
+            color: "#64748b",
+            fontWeight: "bold",
+            marginBottom: "5px",
+            textTransform: "uppercase"
+          }}
+        >
+          {item.t}
+        </p>
 
-            <p style={{
-              fontSize: "14px",
-              fontWeight: "800",
-              color: item.c,
-              margin: 0
-            }}>
-              {item.isPct ? item.v : format(Number(item.v))}
-            </p>
-          </div>
-        ))}
+        <p
+          style={{
+            fontSize: "14px",
+            fontWeight: "800",
+            color: item.c,
+            margin: 0
+          }}
+        >
+          {item.isPct ? item.v : format(Number(item.v))}
+        </p>
       </div>
-    </div>
+    ))}
+  </div>
+</div>
+
+{/* ================= KPI TAHUNAN ================= */}
+<div
+  className="genesis-kpi"
+  style={{
+    display: "flex",
+    gap: "10px",
+    flexWrap: "wrap",
+    marginBottom: "20px",
+  }}
+>
+  <StatCard
+    title="Anggaran Tahunan"
+    value={format(totalAnggaranTahunan)}
+  />
+
+  <StatCard
+    title={`Transaksi YTD (s.d Bln ${maxBulan})`}
+    value={format(totalTransaksiTahunan)}
+  />
+
+  <StatCard
+    title="Saldo YTD"
+    value={format(totalSaldoTahunan)}
+    color={totalSaldoTahunan < 0 ? "#dc2626" : "#111"}
+  />
+
+  <StatCard
+    title="Serapan YTD"
+    value={`${serapanTahunan.toFixed(1)}%`}
+    color= { "#111"}
+    
+  />
+
+  <StatCard
+    title={`Target Serapan s.d Bln ${maxBulan} (${(
+      (maxBulan / 12) *
+      100
+    ).toFixed(1)}%)`}
+    value={format((maxBulan / 12) * totalAnggaranTahunan)}
+    color="#111"
+  />
+</div>
 
     {/* ================= ASNAF & CHART ================= */}
     <div className="asnaf-chart-row" style={{ display: "flex", gap: "20px", flexWrap: "wrap", marginBottom: "25px" }}>
@@ -1726,147 +1819,246 @@ const stickyCol = (left: number, enabled: boolean = true): CSSProperties => {
         </div>
       </div>
 
-      <div style={{
-        flex: "1 1 400px",
-        minWidth: "300px",
-        background: "#fff",
-        padding: "20px",
-        borderRadius: "12px",
-        border: "1px solid #e2e8f0",
-        display: "flex",
-        flexDirection: "column",
-        alignItems: "center",
-        justifyContent: "center"
-      }}>
-        <p style={{ fontSize: "12px", fontWeight: "bold", marginBottom: "10px", color: "#334155" }}>
-          Prog vs Ops
-        </p>
+        <div style={{
+          flex: "1 1 400px",
+          minWidth: "300px",
+          background: "#fff",
+          padding: "20px",
+          borderRadius: "12px",
+          border: "1px solid #e2e8f0",
+          display: "flex",
+          flexDirection: "column",
+          alignItems: "center",
+          justifyContent: "center"
+        }}>
+          <p style={{ fontSize: "12px", fontWeight: "bold", marginBottom: "10px", color: "#334155" }}>
+            Prog vs Ops
+          </p>
 
-        <ResponsiveContainer width="100%" height={250}>
-          <PieChart>
-            <Pie
-              data={pieData}
-              dataKey="value"
-              cx="50%"
-              cy="50%"
-              innerRadius={50}
-              outerRadius={80}
-              paddingAngle={5}
-              label={(e: any) => `${(e.percent * 100).toFixed(0)}%`}
-            >
-              <Cell fill="#006837" />
-              <Cell fill="#f59e0b" />
-            </Pie>
-            <Tooltip />
-            <Legend verticalAlign="bottom" height={36} iconType="circle" wrapperStyle={{ fontSize: "12px" }} />
-          </PieChart>
-        </ResponsiveContainer>
+          <div style={{ width: "100%", display: "flex", justifyContent: "center" }}>
+            <div>
+              <PieChart width={420} height={320}>
+                <Pie
+                  data={pieData}
+                  dataKey="value"
+                  cx="50%"
+                  cy="45%"
+                  innerRadius={45}
+                  outerRadius={75}
+                  paddingAngle={5}
+                >
+                  <Cell fill="#006837" />
+                  <Cell fill="#f59e0b" />
+                </Pie>
+
+                <Tooltip />
+
+                <Legend
+                  verticalAlign="bottom"
+                  height={36}
+                  iconType="circle"
+                  wrapperStyle={{ fontSize: "12px" }}
+                />
+              </PieChart>
+
+              {/* ===== CUSTOM PRINT LABEL ===== */}
+              <div
+                style={{
+                  display: "flex",
+                  justifyContent: "center",
+                  gap: "20px",
+                  marginTop: "-10px",
+                  fontSize: "12px",
+                  fontWeight: 600,
+                  flexWrap: "wrap",
+                  textAlign: "center"
+                }}
+              >
+                <div style={{ color: "#006837" }}>
+                  ● Program
+                  <br />
+                  {(
+                    (pieData[0]?.value /
+                      (pieData[0]?.value + pieData[1]?.value)) *
+                    100
+                  ).toFixed(1)}
+                  %
+                  <br />
+                  Rp {(pieData[0]?.value / 1000000000).toFixed(1)} M
+                </div>
+
+                <div style={{ color: "#f59e0b" }}>
+                  ● Operasional
+                  <br />
+                  {(
+                    (pieData[1]?.value /
+                      (pieData[0]?.value + pieData[1]?.value)) *
+                    100
+                  ).toFixed(1)}
+                  %
+                  <br />
+                  Rp {(pieData[1]?.value / 1000000000).toFixed(1)} M
+                </div>
+              </div>
+            </div>
+          </div>
       </div>
     </div>
 
     {/* ================= TABLE ================= */}
-    <div className="table-wrapper-report">
-      <table style={{ width: "100%", minWidth: "900px", borderCollapse: "collapse", fontSize: "11px" }}>
-        <thead>
-          <tr>
-            <th style={thStickyStyle}>Struktur / Akun DD</th>
-            <th style={thStickyStyle}>Anggaran</th>
-            <th style={thStickyStyle}>UM</th>
-            <th style={thStickyStyle}>Beban</th>
-            <th style={thStickyStyle}>Total</th>
-            <th style={thStickyStyle}>Saldo</th>
-            <th style={{ ...thStickyStyle, textAlign: "center" }}>%</th>
-          </tr>
-        </thead>
+<div className="table-wrapper-report">
+  <table
+    style={{
+      width: "100%",
+      minWidth: "900px",
+      borderCollapse: "collapse",
+      fontSize: "11px"
+    }}
+  >
+    <thead>
+      <tr>
+        <th style={thStickyStyle}>Struktur / Akun DD</th>
+        <th style={thStickyStyle}>Anggaran</th>
+        <th style={thStickyStyle}>UM</th>
+        <th style={thStickyStyle}>Beban</th>
+        <th style={thStickyStyle}>Total</th>
+        <th style={thStickyStyle}>Saldo</th>
+        <th style={{ ...thStickyStyle, textAlign: "center" }}>%</th>
+      </tr>
+    </thead>
 
-        <tbody>
-          {Object.entries(treeDD).map(([akunDD, d]: any) => {
-            const openDD = expandedDD === akunDD;
-            const serapanDD = d.a > 0 ? (d.t / d.a) * 100 : 0;
+    <tbody>
+      {Object.entries(treeDD).map(([akunDD, d]: any) => {
+        const openDD = expandedDD.includes(akunDD);
+        const serapanDD = d.a > 0 ? (d.t / d.a) * 100 : 0;
 
-            return (
-              <React.Fragment key={akunDD}>
+        return (
+          <React.Fragment key={akunDD}>
 
-                <tr
-                  onClick={() => {
-                    setExpandedDD(openDD ? null : akunDD);
-                    setExpandedProg(null);
-                  }}
-                  style={{
-                    background: "#f1f5f9",
-                    fontWeight: 700,
-                    cursor: "pointer"
-                  }}
-                >
-                  <td style={tdStyle}>{openDD ? "▼" : "▶"} {akunDD}</td>
-                  <td style={tdRight}>{format(d.a)}</td>
-                  <td style={tdRight}>{format(d.um)}</td>
-                  <td style={tdRight}>{format(d.b)}</td>
-                  <td style={tdRight}>{format(d.t)}</td>
-                  <td style={tdRight}>{format(d.a - d.t)}</td>
-                  <td style={{ ...tdCenter, color: serapanDD < 70 ? "#dc2626" : "#006837" }}>
-                    {serapanDD.toFixed(1)}%
-                  </td>
-                </tr>
+            <tr
+              onClick={() => {
+                setExpandedDD(prev =>
+                  prev.includes(akunDD)
+                    ? prev.filter(item => item !== akunDD)
+                    : [...prev, akunDD]
+                );
+              }}
+              style={{
+                background: "#f1f5f9",
+                fontWeight: 700,
+                cursor: "pointer"
+              }}
+            >
+              <td style={tdStyle}>
+                {openDD ? "▼" : "▶"} {akunDD}
+              </td>
 
-                {openDD &&
-                  Object.entries(d.programsDD).map(([prog, p]: any) => {
-                    const openProg = expandedProg === prog;
-                    const serapanProg = p.a > 0 ? (p.t / p.a) * 100 : 0;
+              <td style={tdRight}>{format(d.a)}</td>
+              <td style={tdRight}>{format(d.um)}</td>
+              <td style={tdRight}>{format(d.b)}</td>
+              <td style={tdRight}>{format(d.t)}</td>
+              <td style={tdRight}>{format(d.a - d.t)}</td>
 
-                    return (
-                      <React.Fragment key={prog}>
+              <td
+                style={{
+                  ...tdCenter,
+                  color: serapanDD < 70 ? "#dc2626" : "#006837"
+                }}
+              >
+                {serapanDD.toFixed(1)}%
+              </td>
+            </tr>
 
-                        <tr
-                          onClick={() => setExpandedProg(openProg ? null : prog)}
-                          style={{ cursor: "pointer" }}
-                        >
-                          <td style={{ ...tdStyle, paddingLeft: "20px" }}>
-                            {openProg ? "▼" : "▶"} {prog}
+            {openDD &&
+              Object.entries(d.programsDD).map(([prog, p]: any) => {
+                const openProg = expandedProg.includes(prog);
+                const serapanProg = p.a > 0 ? (p.t / p.a) * 100 : 0;
+
+                return (
+                  <React.Fragment key={prog}>
+
+                    <tr
+                      onClick={() => {
+                        setExpandedProg(prev =>
+                          prev.includes(prog)
+                            ? prev.filter(item => item !== prog)
+                            : [...prev, prog]
+                        );
+                      }}
+                      style={{ cursor: "pointer" }}
+                    >
+                      <td
+                        style={{
+                          ...tdStyle,
+                          paddingLeft: "20px"
+                        }}
+                      >
+                        {openProg ? "▼" : "▶"} {prog}
+                      </td>
+
+                      <td style={tdRight}>{format(p.a)}</td>
+                      <td style={tdRight}>{format(p.um)}</td>
+                      <td style={tdRight}>{format(p.b)}</td>
+                      <td style={tdRight}>{format(p.t)}</td>
+                      <td style={tdRight}>{format(p.a - p.t)}</td>
+
+                      <td style={tdCenter}>
+                        {serapanProg.toFixed(1)}%
+                      </td>
+                    </tr>
+
+                    {openProg &&
+                      Object.entries(p.akunBudget).map(([akun, a]: any) => (
+                        <tr key={akun}>
+                          <td
+                            style={{
+                              ...tdStyle,
+                              paddingLeft: "40px"
+                            }}
+                          >
+                            • {akun}
                           </td>
-                          <td style={tdRight}>{format(p.a)}</td>
-                          <td style={tdRight}>{format(p.um)}</td>
-                          <td style={tdRight}>{format(p.b)}</td>
-                          <td style={tdRight}>{format(p.t)}</td>
-                          <td style={tdRight}>{format(p.a - p.t)}</td>
-                          <td style={tdCenter}>{serapanProg.toFixed(1)}%</td>
+
+                          <td style={tdRight}>{format(a.a)}</td>
+                          <td style={tdRight}>{format(a.um)}</td>
+                          <td style={tdRight}>{format(a.b)}</td>
+                          <td style={tdRight}>{format(a.t)}</td>
+                          <td style={tdRight}>{format(a.a - a.t)}</td>
+
+                          <td style={tdCenter}>
+                            {(a.a > 0 ? (a.t / a.a) * 100 : 0).toFixed(1)}%
+                          </td>
                         </tr>
+                      ))}
+                  </React.Fragment>
+                );
+              })}
+          </React.Fragment>
+        );
+      })}
 
-                        {openProg &&
-                          Object.entries(p.akunBudget).map(([akun, a]: any) => (
-                            <tr key={akun}>
-                              <td style={{ ...tdStyle, paddingLeft: "40px" }}>• {akun}</td>
-                              <td style={tdRight}>{format(a.a)}</td>
-                              <td style={tdRight}>{format(a.um)}</td>
-                              <td style={tdRight}>{format(a.b)}</td>
-                              <td style={tdRight}>{format(a.t)}</td>
-                              <td style={tdRight}>{format(a.a - a.t)}</td>
-                              <td style={tdCenter}>{(a.a > 0 ? (a.t / a.a) * 100 : 0).toFixed(1)}%</td>
-                            </tr>
-                          ))}
-                      </React.Fragment>
-                    );
-                  })}
-              </React.Fragment>
-            );
-          })}
+      {/* GRAND TOTAL */}
+      <tr
+        style={{
+          background: THEME.primary,
+          color: "#fff",
+          fontWeight: 800
+        }}
+      >
+        <td style={tdStyle}>GRAND TOTAL</td>
+        <td style={tdRight}>{format(grandTotal.a)}</td>
+        <td style={tdRight}>{format(grandTotal.um)}</td>
+        <td style={tdRight}>{format(grandTotal.b)}</td>
+        <td style={tdRight}>{format(grandTotal.t)}</td>
+        <td style={tdRight}>{format(grandTotal.a - grandTotal.t)}</td>
+        <td style={tdCenter}>{totalSerapan.toFixed(1)}%</td>
+      </tr>
 
-          {/* GRAND TOTAL */}
-          <tr style={{ background: THEME.primary, color: "#fff", fontWeight: 800 }}>
-            <td style={tdStyle}>GRAND TOTAL</td>
-            <td style={tdRight}>{format(grandTotal.a)}</td>
-            <td style={tdRight}>{format(grandTotal.um)}</td>
-            <td style={tdRight}>{format(grandTotal.b)}</td>
-            <td style={tdRight}>{format(grandTotal.t)}</td>
-            <td style={tdRight}>{format(grandTotal.a - grandTotal.t)}</td>
-            <td style={tdCenter}>{totalSerapan.toFixed(1)}%</td>
-          </tr>
-
-        </tbody>
-      </table>
-    </div>
-  </div>
-        )}
-    </div>
-  </div>
-  )}
+    </tbody>
+  </table>
+</div>
+</div>
+)}
+</div>
+</div>
+)}
