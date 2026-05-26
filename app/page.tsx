@@ -154,13 +154,30 @@ export default function ExecutiveDashboard() {
   const listBulan = [...new Set(safeData.map(d => String(d.Bulan)))].filter(Boolean).sort((a,b) => Number(a)-Number(b));
   const listJenisDana = [...new Set(safeData.map(d => String(d["Jenis Dana"])))].filter(Boolean);
   
- // ==============================
+// ==============================
 // FILTER SECTION
 // ==============================
 
-// ✅ MULTI SELECT JENIS DANA
+// ✅ NORMALIZE TEXT
+const cleanText = (val: any) =>
+  String(val || "")
+    .normalize("NFKC")
+    .replace(/\u00A0/g, " ")
+    .replace(/[^\w\s.-]/g, "")
+    .replace(/\s+/g, " ")
+    .trim()
+    .toLowerCase();
 
-// ✅ HANDLE CHECKBOX JENIS DANA
+const formatLabel = (text: string) =>
+  text.replace(/\b\w/g, (c) =>
+    c.toUpperCase()
+  );
+
+// ==============================
+// MULTI SELECT JENIS DANA
+// ==============================
+
+// ✅ HANDLE CHECKBOX
 const handleJenisDanaChange = (value: string) => {
   setJenisDana((prev) =>
     prev.includes(value)
@@ -169,18 +186,97 @@ const handleJenisDanaChange = (value: string) => {
   );
 };
 
-// ✅ FILTER TABLE & CHART (multi select bebas)
-const filtered = data.filter(d =>
-  (tahun === "All" || String(d.Tahun) === tahun) &&
+// ==============================
+// DETEKSI DATA INVALID
+// ==============================
+
+const invalidJenisDana = data.filter(
+  (d: any) => {
+    const val = cleanText(
+      d["Jenis Dana"]
+    ).toLowerCase();
+
+    return (
+      !val ||
+      val === "-" ||
+      val === "*" ||
+      val === "#n/a" ||
+      val === "0" ||
+      val === "na" ||
+      val === "null"
+    );
+  }
+);
+
+const totalInvalidJenisDana =
+  invalidJenisDana.length;
+
+// ==============================
+// FILTER TABLE & CHART
+// ==============================
+
+const filtered = data.filter((d: any) =>
+  (tahun === "All" ||
+    String(d.Tahun) === tahun) &&
+
   (
     jenisDana.length === 0 ||
-    jenisDana.includes(d["Jenis Dana"])
+    jenisDana.includes(
+      cleanText(d["Jenis Dana"])
+    )
   ) &&
+
   (
     selectedBulan.length === 0 ||
-    selectedBulan.includes(String(d.Bulan))
+    selectedBulan.includes(
+      String(d.Bulan)
+    )
   )
 );
+
+// ==============================
+// UNIQUE JENIS DANA
+// ==============================
+
+const uniqueJenisDana = Array.from(
+  new Map(
+    data
+      .filter((d: any) => {
+        const total =
+          parse(d["Anggaran Tahunan"]) +
+          parse(d["UM Bulan"]) +
+          parse(d["Beban Bulan"]);
+
+        return total > 0;
+      })
+
+      .map((d: any) => {
+        const original = String(
+          d["Jenis Dana"] || ""
+        ).trim();
+
+        const clean = original
+          .toLowerCase()
+          .replace(/\s+/g, " ")
+          .trim();
+
+        return [clean, original] as const;
+      })
+
+      .filter(([clean]) =>
+        clean &&
+        clean !== "-" &&
+        clean !== "*" &&
+        clean !== "#n/a" &&
+        clean !== "0" &&
+        clean !== "na" &&
+        clean !== "null"
+      )
+  ).values()
+).sort();
+// ==============================
+// TREND BULANAN
+// ==============================
 
 const trendBulanan = Object.values(
   filtered.reduce((acc: any, d: any) => {
@@ -197,11 +293,14 @@ const trendBulanan = Object.values(
       };
     }
 
-    // ✅ pastikan field sesuai data
-    const nilaiAnggaran = parse(
-      d["Anggaran Bulanan"] || d["Anggaran"]
-    );
+    // ✅ ANGGARAN
+    const nilaiAnggaran =
+      parse(
+        d["Anggaran Bulanan"] ||
+        d["Anggaran"]
+      );
 
+    // ✅ REALISASI
     const nilaiRealisasi =
       parse(d["UM Bulan"]) +
       parse(d["Beban Bulan"]);
@@ -211,32 +310,54 @@ const trendBulanan = Object.values(
 
     return acc;
   }, {})
-).sort((a: any, b: any) => a.bulan - b.bulan);
+).sort(
+  (a: any, b: any) =>
+    a.bulan - b.bulan
+);
+
 // ==============================
 // KPI LOGIC (YTD)
 // ==============================
 
-// ambil bulan terbesar untuk YTD
-const maxBulan = selectedBulan.length > 0
-  ? Math.max(...selectedBulan.map(Number))
-  : 12;
+// ambil bulan terbesar
+const maxBulan =
+  selectedBulan.length > 0
+    ? Math.max(
+        ...selectedBulan.map(Number)
+      )
+    : 12;
 
-// ✅ FILTER YTD (Jan → bulan terakhir)
-const filteredYTD = data.filter(d =>
-  (tahun === "All" || String(d.Tahun) === tahun) &&
+// ==============================
+// FILTER YTD
+// ==============================
+
+const filteredYTD = data.filter((d: any) =>
+  (tahun === "All" ||
+    String(d.Tahun) === tahun) &&
+
   (
     jenisDana.length === 0 ||
-    jenisDana.includes(d["Jenis Dana"])
+    jenisDana.includes(
+      cleanText(d["Jenis Dana"])
+    )
   ) &&
+
   Number(d.Bulan) <= maxBulan
 );
 
-// ✅ FILTER FULL YEAR (khusus ambil anggaran tahunan)
-const filteredFullYear = data.filter(d =>
-  (tahun === "All" || String(d.Tahun) === tahun) &&
+// ==============================
+// FILTER FULL YEAR
+// ==============================
+
+const filteredFullYear = data.filter((d: any) =>
+  (tahun === "All" ||
+    String(d.Tahun) === tahun) &&
+
   (
     jenisDana.length === 0 ||
-    jenisDana.includes(d["Jenis Dana"])
+    jenisDana.includes(
+      cleanText(d["Jenis Dana"])
+    )
   )
 );
 
@@ -244,28 +365,96 @@ const filteredFullYear = data.filter(d =>
 // KPI TAHUNAN (YTD)
 // ==============================
 
-// ⚠️ NOTE: pakai Anggaran Tahunan, bukan Anggaran Bulanan
-const totalAnggaranTahunan = filteredFullYear.reduce(
-  (acc, d) => acc + parse(d["Anggaran Tahunan"]),
-  0
-);
+// total anggaran tahunan
+const totalAnggaranTahunan =
+  filteredFullYear.reduce(
+    (acc, d) =>
+      acc +
+      parse(d["Anggaran Tahunan"]),
+    0
+  );
 
-// transaksi YTD (UM + Beban dari bulan 1 → maxBulan)
-const totalTransaksiTahunan = filteredYTD.reduce(
-  (acc, d) => acc + parse(d["UM Bulan"]) + parse(d["Beban Bulan"]),
-  0
-);
+// total transaksi
+const totalTransaksiTahunan =
+  filteredYTD.reduce(
+    (acc, d) =>
+      acc +
+      parse(d["UM Bulan"]) +
+      parse(d["Beban Bulan"]),
+    0
+  );
 
 // saldo
-const totalSaldoTahunan = totalAnggaranTahunan - totalTransaksiTahunan;
+const totalSaldoTahunan =
+  totalAnggaranTahunan -
+  totalTransaksiTahunan;
 
 // serapan
 const serapanTahunan =
   totalAnggaranTahunan > 0
-    ? (totalTransaksiTahunan / totalAnggaranTahunan) * 100
+    ? (
+        totalTransaksiTahunan /
+        totalAnggaranTahunan
+      ) * 100
     : 0;
 
-  const currentDate = new Date();
+// ==============================
+// DROPDOWN UI
+// ==============================
+
+<div
+  style={{
+    display: "flex",
+    flexDirection: "column",
+    gap: 8,
+  }}
+>
+  {/* CHECKBOX LIST */}
+  {uniqueJenisDana.map((rawItem) => {
+    // ✅ pastikan item selalu clean
+    const item = cleanText(rawItem);
+
+    return (
+      <label
+        key={item}
+        style={{
+          display: "flex",
+          alignItems: "center",
+          gap: 8,
+          cursor: "pointer",
+        }}
+      >
+        <input
+          type="checkbox"
+          checked={jenisDana.includes(item)}
+          onChange={() =>
+            handleJenisDanaChange(item)
+          }
+        />
+
+        {item}
+      </label>
+    );
+  })}
+
+  {/* WARNING INVALID */}
+  {totalInvalidJenisDana > 0 && (
+    <div
+      style={{
+        marginTop: 12,
+        padding: "10px 12px",
+        borderRadius: 10,
+        background: "#FEF3C7",
+        color: "#92400E",
+        fontSize: 13,
+        fontWeight: 600,
+      }}
+    >
+      ⚠ {totalInvalidJenisDana} data tanpa jenis dana
+    </div>
+  )}
+</div>
+    const currentDate = new Date();
   const currentYear = currentDate.getFullYear();
   const currentMonth = currentDate.getMonth() + 1;
 
@@ -381,15 +570,241 @@ const totalAll = Object.values(tree).reduce(
 );
 const grandTotal = totalAll;
 
+const totalSerapan =
+  totalAll.a > 0
+    ? (totalAll.t / totalAll.a) * 100
+    : 0;
 // ==============================
 // SERAPAN TOTAL
 // ==============================
-const totalSerapan =
-  totalAll.a > 0 ? (totalAll.t / totalAll.a) * 100 : 0;
-  const pieData = [
-    { name: "Program", value: filtered.filter(d => (d["Program/Operasional"] || "").toLowerCase().includes("program")).reduce((a, b) => a + (parse(b["UM Bulan"]) + parse(b["Beban Bulan"])), 0) },
-    { name: "Operasional", value: filtered.filter(d => (d["Program/Operasional"] || "").toLowerCase().includes("operasional")).reduce((a, b) => a + (parse(b["UM Bulan"]) + parse(b["Beban Bulan"])), 0) }
-  ];
+
+// PARSER ANGKA
+const parseNumber = (val: any): number => {
+  if (val === null || val === undefined || val === "") return 0;
+
+  // kalau sudah number
+  if (typeof val === "number") return val;
+
+  // ubah ke string
+  let str = String(val).trim();
+
+  // hapus Rp dan spasi
+  str = str.replace(/Rp/gi, "").replace(/\s/g, "");
+
+  // format indo: 1.234.567,89
+  str = str.replace(/\./g, "").replace(/,/g, ".");
+
+  const num = Number(str);
+
+  return isNaN(num) ? 0 : num;
+};
+
+// DEBUG
+console.log("filtered", filtered);
+console.log("sample row", filtered?.[0]);
+
+console.log(
+  "keys:",
+  filtered?.[0] ? Object.keys(filtered[0]) : []
+);
+
+console.log(
+  "preview:",
+  filtered?.slice(0, 5).map((d: any) => ({
+    kategori: d["Program/Operasional"],
+    um: d["UM Bulan"],
+    beban: d["Beban Bulan"],
+    umParsed: parseNumber(d["UM Bulan"]),
+    bebanParsed: parseNumber(d["Beban Bulan"]),
+  }))
+);
+
+// ==============================
+// PIE DATA
+// ==============================
+
+const pieData = [
+  {
+    name: "Program",
+    value: filtered
+      .filter((d: any) =>
+        String(d["Program/Operasional"] || "")
+          .toLowerCase()
+          .includes("program")
+      )
+      .reduce((sum: number, d: any) => {
+        return (
+          sum +
+          parseNumber(d["UM Bulan"]) +
+          parseNumber(d["Beban Bulan"])
+        );
+      }, 0),
+  },
+
+  {
+    name: "Operasional",
+    value: filtered
+      .filter((d: any) =>
+        String(d["Program/Operasional"] || "")
+          .toLowerCase()
+          .includes("operasional")
+      )
+      .reduce((sum: number, d: any) => {
+        return (
+          sum +
+          parseNumber(d["UM Bulan"]) +
+          parseNumber(d["Beban Bulan"])
+        );
+      }, 0),
+  },
+];
+
+console.log("PIE DATA =", pieData);
+
+// ==============================
+// TOTAL PIE
+// ==============================
+
+const totalPie = pieData.reduce(
+  (sum, item) => sum + item.value,
+  0
+);
+
+// ==============================
+// FORMAT RUPIAH
+// ==============================
+
+const formatRupiah = (num: number) => {
+  return new Intl.NumberFormat("id-ID", {
+    style: "currency",
+    currency: "IDR",
+    maximumFractionDigits: 0,
+  }).format(num);
+};
+
+<>
+  {/* PIE CHART */}
+  <div
+    style={{
+      width: "100%",
+      display: "flex",
+      justifyContent: "center",
+    }}
+  >
+    <PieChart width={420} height={320}>
+      <Pie
+        data={pieData}
+        dataKey="value"
+        cx="50%"
+        cy="45%"
+        innerRadius={45}
+        outerRadius={75}
+        paddingAngle={5}
+        label={({ value }: any) => {
+          const percentage =
+            totalPie > 0
+              ? ((value / totalPie) * 100).toFixed(1)
+              : "0";
+
+          return `${percentage}%`;
+        }}
+      >
+        {pieData.map((entry, index) => (
+          <Cell
+            key={`cell-${index}`}
+            fill={index === 0 ? "#00873E" : "#F59E0B"}
+          />
+        ))}
+      </Pie>
+
+      <Tooltip
+        formatter={(value: any) =>
+          formatRupiah(Number(value))
+        }
+      />
+    </PieChart>
+  </div>
+
+  {/* LEGEND */}
+  <div
+    style={{
+      background: "#F3F4F6",
+      borderRadius: 16,
+      padding: "16px 20px",
+      marginTop: 16,
+    }}
+  >
+    {pieData.map((item, index) => {
+      const percentage =
+        totalPie > 0
+          ? ((item.value / totalPie) * 100).toFixed(1)
+          : "0";
+
+      return (
+        <div
+          key={item.name}
+          style={{
+            display: "flex",
+            justifyContent: "space-between",
+            alignItems: "center",
+            marginBottom: 12,
+          }}
+        >
+          <div
+            style={{
+              display: "flex",
+              alignItems: "center",
+              gap: 10,
+            }}
+          >
+            <div
+              style={{
+                width: 14,
+                height: 14,
+                borderRadius: "50%",
+                background:
+                  index === 0
+                    ? "#00873E"
+                    : "#F59E0B",
+              }}
+            />
+
+            <div
+              style={{
+                fontWeight: 600,
+                color: "#334155",
+              }}
+            >
+              {item.name}
+
+              <span
+                style={{
+                  marginLeft: 8,
+                  color: "#94A3B8",
+                  fontWeight: 500,
+                }}
+              >
+                ({percentage}%)
+              </span>
+            </div>
+          </div>
+
+          <div
+            style={{
+              fontWeight: 700,
+              color:
+                index === 0
+                  ? "#00873E"
+                  : "#F59E0B",
+            }}
+          >
+            {formatRupiah(item.value)}
+          </div>
+        </div>
+      );
+    })}
+  </div>
+</>
 
   const treeDD: any = {};
   filtered.forEach(d => {
@@ -1130,7 +1545,7 @@ const stickyCol = (left: number, enabled: boolean = true): CSSProperties => {
           gap: "8px"
         }}
       >
-        {listJenisDana.map(item => (
+        {uniqueJenisDana.map(item => (
           <label
             key={item}
             style={{
@@ -1344,7 +1759,7 @@ const stickyCol = (left: number, enabled: boolean = true): CSSProperties => {
               cy="50%"
               innerRadius={40}
               outerRadius={70}
-              label={(e: any) => `${(e.percent * 100).toFixed(0)}%`}
+              label={(e: any) => !e.percent || isNaN(e.percent) ? "0%" : `${(e.percent * 100).toFixed(0)}%`}
             >
               <Cell fill="#006837" />
               <Cell fill="#f59e0b" />
@@ -1831,79 +2246,69 @@ const stickyCol = (left: number, enabled: boolean = true): CSSProperties => {
           alignItems: "center",
           justifyContent: "center"
         }}>
-          <p style={{ fontSize: "12px", fontWeight: "bold", marginBottom: "10px", color: "#334155" }}>
-            Prog vs Ops
+          <p style={{ fontSize: "14px", fontWeight: "bold", marginBottom: "15px", color: "#334155" }}>
+            Proporsi Program vs Operasional
           </p>
 
-          <div style={{ width: "100%", display: "flex", justifyContent: "center" }}>
-            <div>
-              <PieChart width={420} height={320}>
-                <Pie
-                  data={pieData}
-                  dataKey="value"
-                  cx="50%"
-                  cy="45%"
-                  innerRadius={45}
-                  outerRadius={75}
-                  paddingAngle={5}
-                >
-                  <Cell fill="#006837" />
-                  <Cell fill="#f59e0b" />
-                </Pie>
+          <div style={{ width: "100%", display: "flex", flexDirection: "column", alignItems: "center" }}>
+            {/* Chart Utama */}
+            <PieChart width={400} height={250}>
+          <Pie
+            data={pieData}
+            dataKey="value"
+            cx="50%"
+            cy="50%"
+            innerRadius={60}
+            outerRadius={90}
+            paddingAngle={5}
+            // Perbaikan: gunakan props: any untuk menghindari error merah di 'percent'
+            label={(props: any) => `${(props.percent * 100).toFixed(0)}%`}
+          >
+            <Cell fill="#006837" />
+            <Cell fill="#f59e0b" />
+          </Pie>
+          {/* Perbaikan: pastikan value diconvert ke Number sebelum masuk ke format() */}
+          <Tooltip formatter={(value: any) => format(Number(value))} />
+        </PieChart>
 
-                <Tooltip />
+            {/* ================= LEGEND BARU (RAPI & RUPIAH PENUH) ================= */}
+            <div style={{
+              width: "100%",
+              marginTop: "10px",
+              display: "flex",
+              flexDirection: "column",
+              gap: "12px",
+              padding: "15px",
+              background: "#f8fafc",
+              borderRadius: "10px"
+            }}>
+              {pieData.map((entry: any, index: number) => {
+                const total = pieData[0].value + pieData[1].value;
+                const percentage = ((entry.value / total) * 100).toFixed(1);
+                const color = index === 0 ? "#006837" : "#f59e0b";
 
-                <Legend
-                  verticalAlign="bottom"
-                  height={36}
-                  iconType="circle"
-                  wrapperStyle={{ fontSize: "12px" }}
-                />
-              </PieChart>
-
-              {/* ===== CUSTOM PRINT LABEL ===== */}
-              <div
-                style={{
-                  display: "flex",
-                  justifyContent: "center",
-                  gap: "20px",
-                  marginTop: "-10px",
-                  fontSize: "12px",
-                  fontWeight: 600,
-                  flexWrap: "wrap",
-                  textAlign: "center"
-                }}
-              >
-                <div style={{ color: "#006837" }}>
-                  ● Program
-                  <br />
-                  {(
-                    (pieData[0]?.value /
-                      (pieData[0]?.value + pieData[1]?.value)) *
-                    100
-                  ).toFixed(1)}
-                  %
-                  <br />
-                  Rp {(pieData[0]?.value / 1000000000).toFixed(1)} M
-                </div>
-
-                <div style={{ color: "#f59e0b" }}>
-                  ● Operasional
-                  <br />
-                  {(
-                    (pieData[1]?.value /
-                      (pieData[0]?.value + pieData[1]?.value)) *
-                    100
-                  ).toFixed(1)}
-                  %
-                  <br />
-                  Rp {(pieData[1]?.value / 1000000000).toFixed(1)} M
-                </div>
-              </div>
+                return (
+                  <div key={index} style={{ 
+                    display: "flex", 
+                    justifyContent: "space-between", 
+                    alignItems: "center",
+                    fontSize: "12px"
+                  }}>
+                    <div style={{ display: "flex", alignItems: "center", gap: "8px" }}>
+                      <div style={{ width: "12px", height: "12px", borderRadius: "50%", backgroundColor: color }} />
+                      <span style={{ fontWeight: "700", color: "#475569" }}>{entry.name}</span>
+                      <span style={{ color: "#94a3b8" }}>({percentage}%)</span>
+                    </div>
+                    <div style={{ fontWeight: "800", color: color }}>
+                      {format(entry.value)}
+                    </div>
+                  </div>
+                );
+              })}
             </div>
           </div>
+        </div>
       </div>
-    </div>
 
     {/* ================= TABLE ================= */}
 <div className="table-wrapper-report">
