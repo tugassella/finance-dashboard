@@ -411,7 +411,8 @@ const serapanTahunan =
   style={{
     display: "flex",
     flexDirection: "column",
-    gap: 8,
+    gap: "4px",
+    
   }}
 >
   {/* CHECKBOX LIST */}
@@ -421,17 +422,21 @@ const serapanTahunan =
     .replace(/\s+/g, " ")
     .trim();
 
+  const formattedItem = item.replace(/^(\d+\.)\s*/, "$1   ");
+
   return (
     <label
         key={cleanValue}
         style={{
           display: "flex",
           alignItems: "center",
-          gap: "6px",
-          fontSize: "11px",
-          color: "#475569",
-          fontWeight: "bold",
-          marginBottom: "4px"
+          gap: "12px",
+          fontSize: "11.5px",
+          fontWeight: 400,
+          color: "#334155",
+          lineHeight: "1",
+          cursor: "pointer",
+          userSelect: "none",
         }}
       >
       <input
@@ -440,12 +445,20 @@ const serapanTahunan =
         onChange={() =>
           handleJenisDanaChange(cleanValue)
         }
+        style={{ 
+            cursor: "pointer",
+            margin: 0,
+            transform: "scale(0.95)" // ✨ Mengecilkan sedikit ukuran kotak ceklis agar proporsional dengan font
+          }}
       />
-
-      {item}
-    </label>
+      {/* 💡 Menggunakan teks yang sudah diformat spasinya */}
+        <span style={{ display: "inline-block" }}>
+          {formattedItem}
+        </span>
+      </label>
   );
 })}
+</div>
 
   {/* WARNING INVALID */}
   {totalInvalidJenisDana > 0 && (
@@ -463,7 +476,7 @@ const serapanTahunan =
       ⚠ {totalInvalidJenisDana} data tanpa jenis dana
     </div>
   )}
-</div>
+
     const currentDate = new Date();
   const currentYear = currentDate.getFullYear();
   const currentMonth = currentDate.getMonth() + 1;
