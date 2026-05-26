@@ -423,14 +423,17 @@ const serapanTahunan =
 
   return (
     <label
-      key={cleanValue}
-      style={{
-        display: "flex",
-        alignItems: "center",
-        gap: "6px",
-        fontSize: "12px"
-      }}
-    >
+        key={cleanValue}
+        style={{
+          display: "flex",
+          alignItems: "center",
+          gap: "6px",
+          fontSize: "11px",
+          color: "#475569",
+          fontWeight: "bold",
+          marginBottom: "4px"
+        }}
+      >
       <input
         type="checkbox"
         checked={jenisDana.includes(cleanValue)}
@@ -453,7 +456,7 @@ const serapanTahunan =
         borderRadius: 10,
         background: "#FEF3C7",
         color: "#92400E",
-        fontSize: 13,
+        fontSize: 11,
         fontWeight: 600,
       }}
     >
