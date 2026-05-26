@@ -336,9 +336,11 @@ const filteredYTD = data.filter((d: any) =>
     String(d.Tahun) === tahun) &&
 
   (
-    jenisDana.length === 0 ||
-    jenisDana.includes(
-      cleanText(d["Jenis Dana"])
+      jenisDana.includes(
+    String(d["Jenis Dana"] || "")
+      .toLowerCase()
+      .replace(/\s+/g, " ")
+      .trim()
     )
   ) &&
 
@@ -356,8 +358,11 @@ const filteredFullYear = data.filter((d: any) =>
   (
     jenisDana.length === 0 ||
     jenisDana.includes(
-      cleanText(d["Jenis Dana"])
-    )
+  String(d["Jenis Dana"] || "")
+    .toLowerCase()
+    .replace(/\s+/g, " ")
+    .trim()
+)
   )
 );
 
@@ -410,32 +415,34 @@ const serapanTahunan =
   }}
 >
   {/* CHECKBOX LIST */}
-  {uniqueJenisDana.map((rawItem) => {
-    // ✅ pastikan item selalu clean
-    const item = cleanText(rawItem);
+  {uniqueJenisDana.map((item: any) => {
+  const cleanValue = item
+    .toLowerCase()
+    .replace(/\s+/g, " ")
+    .trim();
 
-    return (
-      <label
-        key={item}
-        style={{
-          display: "flex",
-          alignItems: "center",
-          gap: 8,
-          cursor: "pointer",
-        }}
-      >
-        <input
-          type="checkbox"
-          checked={jenisDana.includes(item)}
-          onChange={() =>
-            handleJenisDanaChange(item)
-          }
-        />
+  return (
+    <label
+      key={cleanValue}
+      style={{
+        display: "flex",
+        alignItems: "center",
+        gap: "6px",
+        fontSize: "12px"
+      }}
+    >
+      <input
+        type="checkbox"
+        checked={jenisDana.includes(cleanValue)}
+        onChange={() =>
+          handleJenisDanaChange(cleanValue)
+        }
+      />
 
-        {item}
-      </label>
-    );
-  })}
+      {item}
+    </label>
+  );
+})}
 
   {/* WARNING INVALID */}
   {totalInvalidJenisDana > 0 && (
@@ -479,14 +486,23 @@ const serapanTahunan =
       ? Math.max(...selectedBulan.map(Number))
       : 12;
 
-    const filteredYTD = data.filter(d =>
-      (tahun === "All" || String(d.Tahun) === tahun) &&
-      (
-        jenisDana.length === 0 ||
-        jenisDana.includes(d["Jenis Dana"])
-      ) &&
-      Number(d.Bulan) <= maxBulan
-    );
+    const filteredYTD = data.filter(
+  (d: any) =>
+    (tahun === "All" ||
+      String(d.Tahun) === tahun) &&
+
+    (
+      jenisDana.length === 0 ||
+      jenisDana.includes(
+        String(d["Jenis Dana"] || "")
+          .toLowerCase()
+          .replace(/\s+/g, " ")
+          .trim()
+      )
+    ) &&
+
+    Number(d.Bulan) <= maxBulan
+);
   }, {});
 
   // ✅ Anggaran Berjalan (ikut bulan)
@@ -1545,24 +1561,26 @@ const stickyCol = (left: number, enabled: boolean = true): CSSProperties => {
           gap: "8px"
         }}
       >
-        {uniqueJenisDana.map(item => (
-          <label
-            key={item}
-            style={{
-              display: "flex",
-              alignItems: "center",
-              gap: "6px",
-              fontSize: "12px"
-            }}
-          >
-            <input
-              type="checkbox"
-              checked={jenisDana.includes(item)}
-              onChange={() => handleJenisDanaChange(item)}
-            />
-            {item}
-          </label>
-        ))}
+        {uniqueJenisDana.map((item: any) => {
+          const cleanValue = item
+            .toLowerCase()
+            .replace(/\s+/g, " ")
+            .trim();
+
+          return (
+            <label key={cleanValue}>
+              <input
+                type="checkbox"
+                checked={jenisDana.includes(cleanValue)}
+                onChange={() =>
+                  handleJenisDanaChange(cleanValue)
+                }
+              />
+
+              {item}
+            </label>
+          );
+        })}
       </div>
 
       <button
