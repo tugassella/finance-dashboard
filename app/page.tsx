@@ -84,10 +84,36 @@ export default function ExecutiveDashboard() {
   const [expanded, setExpanded] = useState<Record<string, boolean>>({});
   const [expandedSub, setExpandedSub] = useState<Record<string, boolean>>({});
   const [hoveredKpi, setHoveredKpi] = useState<number | null>(null);
+  const [monitoringUM, setMonitoringUM] = useState<any[]>([]);
+  // const dataQuery = data?.data?.dataQuery || [];
+  const [dataQuery, setDataQuery] = useState<any[]>([]);
+  const cleanMonitoringUM = monitoringUM.filter((row: any) => {
+  const noDesi = String(row["No Desi"] || "").trim();
+
+  const outstanding =
+    Number(String(row["Outstanding"] || "0").replace(/[^\d.-]/g, "")) || 0;
+
+  return noDesi !== "" && outstanding > 0;
+});
+
+const filteredMonitoringUM = cleanMonitoringUM.filter((row: any) =>
+  jenisDana.length === 0 ||
+  jenisDana.includes(
+    String(row["Jenis Dana"] || "")
+      .toLowerCase()
+      .replace(/\s+/g, " ")
+      .trim()
+  )
+);
+
+const overdueMonitoringUM = filteredMonitoringUM.filter((row: any) =>
+  String(row["Status"] || "").toLowerCase().includes("terlambat")
+);
+
   
 
-  useEffect(() => {
-  // CEK LOGIN
+
+useEffect(() => {
   const isLoggedIn = localStorage.getItem("isLoggedIn");
 
   if (!isLoggedIn) {
@@ -95,15 +121,15 @@ export default function ExecutiveDashboard() {
     return;
   }
 
-  // FETCH DATA
   fetch("/api/sheets")
-    .then(res => res.json())
-    .then(res => {
-      setData(Array.isArray(res) ? res : res?.data ?? []);
+    .then((res) => res.json())
+    .then((res) => {
+      setData(res?.dataQuery ?? []);
+      setDataQuery(res?.dataQuery ?? []);
+      setMonitoringUM(res?.monitoringUM ?? []);
       setLoading(false);
     })
     .catch(() => setLoading(false));
-
 }, []);
   const safeData = Array.isArray(data) ? data : [];
   const [printKey, setPrintKey] = useState(0);
@@ -186,15 +212,14 @@ const handleJenisDanaChange = (value: string) => {
   );
 };
 
+
 // ==============================
 // DETEKSI DATA INVALID
 // ==============================
 
-const invalidJenisDana = data.filter(
+const invalidJenisDana = dataQuery.filter(
   (d: any) => {
-    const val = cleanText(
-      d["Jenis Dana"]
-    ).toLowerCase();
+    const val = cleanText(d["Jenis Dana"]).toLowerCase();
 
     return (
       !val ||
@@ -207,15 +232,16 @@ const invalidJenisDana = data.filter(
     );
   }
 );
-
 const totalInvalidJenisDana =
   invalidJenisDana.length;
+
+  
 
 // ==============================
 // FILTER TABLE & CHART
 // ==============================
 
-const filtered = data.filter((d: any) =>
+const filtered = dataQuery.filter((d: any) =>
   (tahun === "All" ||
     String(d.Tahun) === tahun) &&
 
@@ -240,7 +266,7 @@ const filtered = data.filter((d: any) =>
 
 const uniqueJenisDana = Array.from(
   new Map(
-    data
+    dataQuery
       .filter((d: any) => {
         const total =
           parse(d["Anggaran Tahunan"]) +
@@ -331,7 +357,7 @@ const maxBulan =
 // FILTER YTD
 // ==============================
 
-const filteredYTD = data.filter((d: any) =>
+const filteredYTD = dataQuery.filter((d: any) =>
   (tahun === "All" ||
     String(d.Tahun) === tahun) &&
 
@@ -351,7 +377,7 @@ const filteredYTD = data.filter((d: any) =>
 // FILTER FULL YEAR
 // ==============================
 
-const filteredFullYear = data.filter((d: any) =>
+const filteredFullYear = dataQuery.filter((d: any) =>
   (tahun === "All" ||
     String(d.Tahun) === tahun) &&
 
@@ -481,45 +507,27 @@ const serapanTahunan =
   const currentYear = currentDate.getFullYear();
   const currentMonth = currentDate.getMonth() + 1;
 
-  const agingUMList = filtered
-  .filter(d => {
-    const bulan = Number(d.Bulan);
-    const tahunData = Number(d.Tahun);
-    const selisihBulan = (currentYear - tahunData) * 12 + (currentMonth - bulan);
-    return parse(d["UM Bulan"]) > 0 && selisihBulan >= 1;
-  })
-  .reduce((acc: any, curr) => {
-    const sub = curr["Sub Program"] || "N/A";
-    const bulan = Number(curr.Bulan);
-    const tahunData = Number(curr.Tahun);
-    const selisihBulan = (currentYear - tahunData) * 12 + (currentMonth - bulan);
-    if (!acc[sub]) acc[sub] = { total: 0, aging: selisihBulan };
-    acc[sub].total += parse(curr["UM Bulan"]);
-    acc[sub].aging = Math.max(acc[sub].aging, selisihBulan);
-    return acc;
+  const agingUMList = overdueMonitoringUM.reduce((acc: any, curr: any) => {
+  const sub = String(curr["Sub Program"] || "N/A").trim();
 
-    const maxBulan = selectedBulan.length > 0
-      ? Math.max(...selectedBulan.map(Number))
-      : 12;
+  const outstanding =
+    Number(String(curr["Outstanding"] || "0").replace(/[^\d.-]/g, "")) || 0;
 
-    const filteredYTD = data.filter(
-  (d: any) =>
-    (tahun === "All" ||
-      String(d.Tahun) === tahun) &&
+  const umurText = String(curr["Umur UM (Bulan)"] || "0");
+  const aging = Number(umurText.replace(/[^\d.-]/g, "")) || 0;
 
-    (
-      jenisDana.length === 0 ||
-      jenisDana.includes(
-        String(d["Jenis Dana"] || "")
-          .toLowerCase()
-          .replace(/\s+/g, " ")
-          .trim()
-      )
-    ) &&
+  if (!acc[sub]) {
+    acc[sub] = {
+      total: 0,
+      aging,
+    };
+  }
 
-    Number(d.Bulan) <= maxBulan
-);
-  }, {});
+  acc[sub].total += outstanding;
+  acc[sub].aging = Math.max(acc[sub].aging, aging);
+
+  return acc;
+}, {});
 
   // ✅ Anggaran Berjalan (ikut bulan)
     const anggaranBerjalan = filtered.reduce(
@@ -1415,24 +1423,95 @@ const stickyCol = (left: number, enabled: boolean = true): CSSProperties => {
       `}</style>
       
       {showUMModal && (
-        <div className="no-print" style={{ position: "fixed", inset: 0, background: "rgba(0,0,0,0.5)", display: "flex", justifyContent: "center", alignItems: "center", zIndex: 100 }}>
-          <div style={{ background: "#fff", padding: "20px", borderRadius: "12px", width: "450px", maxWidth: "90%" }}>
-            <h3 style={{ fontSize: "16px", color: "#b91c1c", marginBottom: "15px" }}>Detail UM Menggantung</h3>
-            <div style={{ maxHeight: "350px", overflowY: "auto" }}>
-              {Object.entries(agingUMList).map(([sub, info]: any) => (
-                <div key={sub} style={{ display: "flex", justifyContent: "space-between", padding: "8px 0", borderBottom: `1px solid ${THEME.primarySoft}`, fontSize: "12px" }}>
-                  <div style={{ flex: 1 }}>
-                    <div style={{ fontWeight: "bold" }}>{sub}</div>
-                    <div style={{ fontSize: "10px", color: "#ef4444" }}>Keterlambatan: {info.aging} bulan</div>
+  <div className="no-print" style={{ position: "fixed", inset: 0, background: "rgba(0,0,0,0.5)", display: "flex", justifyContent: "center", alignItems: "center", zIndex: 100 }}>
+    <div style={{ background: "#fff", padding: "20px", borderRadius: "12px", width: "560px", maxWidth: "92%" }}>
+      <h3 style={{ fontSize: "16px", color: "#b91c1c", marginBottom: "15px" }}>
+        Detail UM Menggantung
+      </h3>
+
+      <div style={{ maxHeight: "420px", overflowY: "auto" }}>
+        {Object.entries(agingUMList).map(([sub, info]: any) => {
+          const cleanText = (v: any) =>
+            String(v || "")
+              .toLowerCase()
+              .replace(/\s+/g, " ")
+              .trim();
+
+          const details = overdueMonitoringUM.filter((row: any) =>
+            cleanText(row["Sub Program"]) === cleanText(sub)
+          );
+
+          const isOpen = expandedSub[sub];
+
+          return (
+            <div key={sub} style={{ borderBottom: `1px solid ${THEME.primarySoft}`, padding: "8px 0" }}>
+              <div
+                onClick={() =>
+                  setExpandedSub((prev) => ({
+                    ...prev,
+                    [sub]: !prev[sub],
+                  }))
+                }
+                style={{ display: "flex", justifyContent: "space-between", gap: "10px", cursor: "pointer", fontSize: "12px" }}
+              >
+                <div style={{ flex: 1 }}>
+                  <div style={{ fontWeight: "bold" }}>
+                    {isOpen ? "▼" : "▶"} {sub}
                   </div>
-                  <span style={{ fontWeight: "bold", marginLeft: "10px" }}>{format(info.total)}</span>
+                  <div style={{ fontSize: "10px", color: "#ef4444" }}>
+                    Keterlambatan: {info.aging} bulan • {details.length} transaksi
+                  </div>
                 </div>
-              ))}
+
+                <span style={{ fontWeight: "bold", marginLeft: "10px", whiteSpace: "nowrap" }}>
+                  {format(info.total)}
+                </span>
+              </div>
+
+              {isOpen && (
+                <div style={{ marginTop: "8px", background: "#f8fafc", borderRadius: "8px", padding: "8px" }}>
+                  {details.length === 0 ? (
+                    <div style={{ fontSize: "11px", color: "#64748b" }}>
+                      Detail No Desi belum ditemukan.
+                    </div>
+                  ) : (
+                    details.map((row: any, idx: number) => (
+                      <div
+                        key={`${row["No Desi"]}-${idx}`}
+                        style={{
+                          display: "grid",
+                          gridTemplateColumns: "90px 1fr 100px 70px",
+                          gap: "6px",
+                          padding: "6px 0",
+                          borderBottom: idx === details.length - 1 ? "none" : "1px solid #e2e8f0",
+                          fontSize: "11px",
+                          alignItems: "center",
+                        }}
+                      >
+                        <div style={{ fontWeight: 700 }}>{row["No Desi"]}</div>
+                        <div>{row["PIC"]}</div>
+                        <div style={{ textAlign: "right", fontWeight: 700 }}>
+                          {format(Number(String(row["Outstanding"] || "0").replace(/[^\d.-]/g, "")) || 0)}
+                        </div>
+                        <div style={{ textAlign: "right", color: "#ef4444" }}>
+                          {row["Umur UM (Bulan)"]}
+                        </div>
+                      </div>
+                    ))
+                  )}
+                </div>
+              )}
             </div>
-            <button onClick={() => setShowUMModal(false)} style={{ width: "100%", marginTop: "20px", padding: "10px", background: "#006837", color: "#fff", border: "none", borderRadius: "6px", cursor: "pointer" }}>Tutup</button>
-          </div>
-        </div>
-      )}
+          );
+        })}
+      </div>
+
+      <button onClick={() => setShowUMModal(false)} style={{ width: "100%", marginTop: "20px", padding: "10px", background: "#006837", color: "#fff", border: "none", borderRadius: "6px", cursor: "pointer" }}>
+        Tutup
+      </button>
+    </div>
+  </div>
+)}
 
       <div className="dashboard-header" style={{ marginBottom: "15px", borderBottom: "2px solid #006837", paddingBottom: "10px" }}>
         <div 

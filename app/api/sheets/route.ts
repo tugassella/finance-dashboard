@@ -4,50 +4,49 @@ import { google } from "googleapis";
 
 export async function GET() {
   try {
-    // 1. Ambil private key
     const privateKeyRaw = process.env.GOOGLE_PRIVATE_KEY || "";
 
-    // 2. Normalisasi key (INI KRUSIAL untuk Vercel)
     const privateKey = privateKeyRaw
       .replace(/\\n/g, "\n")
       .replace(/\r/g, "")
       .trim();
 
-    // 3. Auth JWT (lebih stabil dibanding GoogleAuth wrapper)
     const auth = new google.auth.JWT({
       email: process.env.GOOGLE_CLIENT_EMAIL,
       key: privateKey,
-      scopes: [
-        "https://www.googleapis.com/auth/spreadsheets.readonly",
-      ],
+      scopes: ["https://www.googleapis.com/auth/spreadsheets.readonly"],
     });
 
-    // 4. Init Google Sheets
     const sheets = google.sheets({ version: "v4", auth });
 
-    // 5. Ambil data dari sheet
-    const response = await sheets.spreadsheets.values.get({
+    const response = await sheets.spreadsheets.values.batchGet({
       spreadsheetId: process.env.GOOGLE_SHEET_ID,
-      range: "data_query!A:Z",
+      ranges: ["data_query!A:Z", "monitoring_um!A:J"],
     });
 
-    const rows = response.data.values || [];
+    const dataQueryRows = response.data.valueRanges?.[0]?.values || [];
+    const monitoringUMRows = response.data.valueRanges?.[1]?.values || [];
 
-    if (rows.length === 0) {
-      return Response.json([]);
+    function sheetToJson(rows: any[][]) {
+      if (!rows.length) return [];
+
+      const headers = rows[0];
+
+      return rows.slice(1).map((row) => {
+        return headers.reduce((obj: any, key: string, i: number) => {
+          obj[key] = row[i] || "";
+          return obj;
+        }, {});
+      });
     }
 
-    const headers = rows[0];
+    const dataQuery = sheetToJson(dataQueryRows);
+    const monitoringUM = sheetToJson(monitoringUMRows);
 
-    // 6. Map data jadi JSON
-    const data = rows.slice(1).map((row) => {
-      return headers.reduce((obj: any, key: string, i: number) => {
-        obj[key] = row[i] || "";
-        return obj;
-      }, {});
+    return Response.json({
+      dataQuery,
+      monitoringUM,
     });
-
-    return Response.json(data);
   } catch (error: any) {
     console.error("API ERROR:", error);
 
