@@ -1459,7 +1459,7 @@ const stickyCol = (left: number, enabled: boolean = true): CSSProperties => {
                     {isOpen ? "▼" : "▶"} {sub}
                   </div>
                   <div style={{ fontSize: "10px", color: "#ef4444" }}>
-                    Keterlambatan: {info.aging} bulan • {details.length} transaksi
+                    {details.length} transaksi
                   </div>
                 </div>
 
