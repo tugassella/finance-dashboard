@@ -392,6 +392,7 @@ const filteredFullYear = dataQuery.filter((d: any) =>
   )
 );
 
+
 // ==============================
 // KPI TAHUNAN (YTD)
 // ==============================
@@ -1419,6 +1420,33 @@ const stickyCol = (left: number, enabled: boolean = true): CSSProperties => {
           }
  
 
+          /* ======================
+              GENDIS KPI PRINT FIX
+            ====================== */
+
+            .gendis-kpi {
+              display: flex !important;
+              flex-direction: row !important;
+              flex-wrap: nowrap !important;
+              gap: 8px !important;
+              width: 100% !important;
+            }
+
+            .gendis-kpi > div,
+            .stat-card {
+              flex: 1 1 0 !important;
+              min-width: 0 !important;
+              width: auto !important;
+              padding: 10px !important;
+            }
+
+            .stat-card span {
+              font-size: 8px !important;
+            }
+
+            .stat-card div {
+              font-size: 10px !important;
+            }
             
       `}</style>
       
@@ -1790,7 +1818,17 @@ const stickyCol = (left: number, enabled: boolean = true): CSSProperties => {
     )}
 
     {/* 2. KPI SECTION (KOTAK-KOTAK ATAS) */}
-    <div className="genesis-kpi" style={{ display: "flex", gap: "10px", flexWrap: "wrap", marginBottom: "20px" }}>
+    <div
+        className="gendis-kpi"
+        style={{
+          display: "flex",
+          flexDirection: "row",
+          flexWrap: "nowrap",
+          gap: "12px",
+          width: "100%",
+          marginBottom: "20px"
+        }}
+      >
       <StatCard title="Anggaran" value={format(grandTotal.a)} color="#0284c7" />
       <StatCard title="UM" value={format(grandTotal.um)} color="#0284c7" />
       <StatCard title="Beban" value={format(grandTotal.b)} color="#0284c7" />
@@ -1800,14 +1838,16 @@ const stickyCol = (left: number, enabled: boolean = true): CSSProperties => {
     </div>
 
         <div
-      className="genesis-kpi"
-      style={{
-        display: "flex",
-        gap: "10px",
-        flexWrap: "wrap",
-        marginBottom: "20px",
-      }}
-    >
+          className="gendis-kpi"
+          style={{
+            display: "flex",
+            flexDirection: "row",
+            flexWrap: "nowrap",
+            gap: "12px",
+            width: "100%",
+            marginBottom: "20px"
+          }}
+        >
       <StatCard
         title="Anggaran Tahunan"
         value={format(totalAnggaranTahunan)}
