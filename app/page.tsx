@@ -96,6 +96,8 @@ export default function ExecutiveDashboard() {
   return noDesi !== "" && outstanding > 0;
 });
 
+
+
 const filteredMonitoringUM = cleanMonitoringUM.filter((row: any) =>
   jenisDana.length === 0 ||
   jenisDana.includes(
@@ -123,10 +125,16 @@ useEffect(() => {
 
   fetch("/api/sheets")
     .then((res) => res.json())
-    .then((res) => {
-      setData(res?.dataQuery ?? []);
-      setDataQuery(res?.dataQuery ?? []);
-      setMonitoringUM(res?.monitoringUM ?? []);
+    .then((result) => {
+      console.log("DATA QUERY DITERIMA:", result?.dataQuery?.length);
+      console.log(
+        "BARIS TERAKHIR:",
+        result?.dataQuery?.[result?.dataQuery?.length - 1]
+      );
+
+      setData(result?.dataQuery ?? []);
+      setDataQuery(result?.dataQuery ?? []);
+      setMonitoringUM(result?.monitoringUM ?? []);
       setLoading(false);
     })
     .catch(() => setLoading(false));
@@ -134,6 +142,7 @@ useEffect(() => {
   const safeData = Array.isArray(data) ? data : [];
   const [printKey, setPrintKey] = useState(0);
 
+  
   useEffect(() => {
   const beforePrint = () => {
       setIsPrint(true);
