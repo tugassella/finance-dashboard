@@ -88,6 +88,7 @@ export default function ExecutiveDashboard() {
   const [dataQuery, setDataQuery] = useState<any[]>([]);
   const [mutasi, setMutasi] = useState<any[]>([]);
   const [traceTransactions, setTraceTransactions] = useState<any[]>([]);
+  const [budgetBreakdown, setBudgetBreakdown] = useState<any[]>([]);
   const [traceOpen, setTraceOpen] = useState(false);
   const [traceAccount, setTraceAccount] = useState("");
   const [traceType, setTraceType] = useState("");
@@ -200,6 +201,51 @@ useEffect(() => {
   return String(akunBudget ?? "")
     .trim()
     .split(/\s+/)[0];
+};
+  const openBudgetBreakdown = (akunBudget: any) => {
+  const targetAkun = normalizeKode(akunBudget);
+
+  const breakdown = dataQuery.filter((d: any) => {
+    // Cocokkan Akun Budget
+    if (
+      normalizeKode(d["Akun Budget"]) !== targetAkun
+    ) {
+      return false;
+    }
+
+    // Filter Tahun
+    if (
+      tahun !== "All" &&
+      String(d["Tahun"]) !== String(tahun)
+    ) {
+      return false;
+    }
+
+    // Filter Bulan
+    if (
+      selectedBulan.length > 0 &&
+      !selectedBulan.includes(String(d["Bulan"]))
+    ) {
+      return false;
+    }
+
+    // Filter Jenis Dana
+    if (
+      jenisDana.length > 0 &&
+      !jenisDana.includes(
+        cleanText(d["Jenis Dana"])
+      )
+    ) {
+      return false;
+    }
+
+    return true;
+  });
+
+  setBudgetBreakdown(breakdown);
+  setTraceAccount(akunBudget);
+  setTraceType("Anggaran");
+  setTraceOpen(true);
 };
 
   const openTrace = (akunBudget: any, jenisTransaksi: string) => {
@@ -2320,7 +2366,18 @@ const stickyCol = (left: number, enabled: boolean = true): CSSProperties => {
                                     <td style={{ ...tdStyle, paddingLeft: "60px", color: THEME.textSoft }}>
                                       ▸ {akun}
                                     </td>
-                                    <td style={tdRight}>{format(a.a)}</td>
+                                    <td
+                                      style={{
+                                        ...tdRight,
+                                        cursor: "pointer",
+                                        color: THEME.textSoft,
+                                        fontWeight: 600,
+                                      }}
+                                      onClick={() => openBudgetBreakdown(akun)}
+                                      >
+                                      {format(a.a)}
+                                      </td>
+
                                     <td
                                       style={{
                                         ...tdRight,
@@ -2391,7 +2448,11 @@ const stickyCol = (left: number, enabled: boolean = true): CSSProperties => {
       </tbody>
     </table>
     
-    {traceOpen && traceTransactions.length > 0 && (
+    {traceOpen &&
+      (
+        traceTransactions.length > 0 ||
+        budgetBreakdown.length > 0
+      ) && (
   <div
     style={{
       position: "fixed",
@@ -2439,10 +2500,10 @@ const stickyCol = (left: number, enabled: boolean = true): CSSProperties => {
       </button>
 
       {!selectedTransaction ? (
-        <>
-          {/* ================================
-              TRANSACTION BREAKDOWN
-              ================================ */}
+  <>
+    {/* ================================
+        TRANSACTION / BUDGET BREAKDOWN
+        ================================ */}
 
           <div
             style={{
@@ -2480,95 +2541,222 @@ const stickyCol = (left: number, enabled: boolean = true): CSSProperties => {
             </div>
           </div>
 
-          <table
-            style={{
-              width: "100%",
-              borderCollapse: "collapse",
-            }}
-          >
-            <thead>
-              <tr>
-                <th style={tdStyle}>Tanggal</th>
-                <th style={tdStyle}>No. Urut Transaksi</th>
-                <th style={tdStyle}>No Desi</th>
-                <th style={tdStyle}>PIC</th>
-                <th style={tdStyle}>Keterangan</th>
-                <th style={tdStyle}>Kode Aktual</th>
-                <th style={tdRight}>Nominal</th>
-              </tr>
-            </thead>
+          {traceType === "Anggaran" ? (
+            <>
+              {/* ================================
+                  ANGGARAN BREAKDOWN
+                  ================================ */}
 
-            <tbody>
-              {traceTransactions.map((m: any, index: number) => (
-                <tr
-                  key={index}
-                  onClick={() => setSelectedTransaction(m)}
-                  style={{
-                    cursor: "pointer",
-                  }}
-                >
-                  <td style={tdStyle}>
-                    {m["TGL"] || "-"}
-                  </td>
+              <table
+                style={{
+                  width: "100%",
+                  borderCollapse: "collapse",
+                  tableLayout: "fixed",
+                }}
+              >
+                <thead>
+                  <tr>
+                    <th
+                      style={{
+                        ...tdStyle,
+                        width: "80px",
+                        textAlign: "left",
+                      }}
+                    >
+                      Bulan
+                    </th>
 
-                  <td style={tdStyle}>
-                    {m["NO. URUT TRANSAKSI"] || "-"}
-                  </td>
+                    <th
+                      style={{
+                        ...tdStyle,
+                        textAlign: "left",
+                      }}
+                    >
+                      Akun Budget
+                    </th>
 
-                  <td style={tdStyle}>
-                    {m["NO DESI"] || "-"}
-                  </td>
+                    <th
+                      style={{
+                        ...tdRight,
+                        width: "180px",
+                      }}
+                    >
+                      Anggaran
+                    </th>
+                  </tr>
+                </thead>
 
-                  <td style={tdStyle}>
-                    {m["PIC"] || "-"}
-                  </td>
+                <tbody>
+                  {budgetBreakdown.map(
+                    (d: any, index: number) => (
+                      <tr key={index}>
+                        <td
+                          style={{
+                            ...tdStyle,
+                            textAlign: "left",
+                          }}
+                        >
+                          {d["Bulan"] || "-"}
+                        </td>
 
-                  <td style={tdStyle}>
-                    {m["KETERANGAN"] || "-"}
-                  </td>
+                        <td
+                          style={{
+                            ...tdStyle,
+                            textAlign: "left",
+                            whiteSpace: "normal",
+                            wordBreak: "break-word",
+                          }}
+                        >
+                          {d["Akun Budget"] || "-"}
+                        </td>
 
-                  <td style={tdStyle}>
-                    {m["KODE AKTUAL"] || "-"}
-                  </td>
-
-                  <td style={tdRight}>
-                    {format(parse(m["NOMINAL"]))}
-                  </td>
-                </tr>
-              ))}
-
-              {/* TOTAL TRANSACTION BREAKDOWN */}
-              <tr>
-                <td
-                  colSpan={6}
-                  style={{
-                    ...tdStyle,
-                    fontWeight: 700,
-                    textAlign: "right",
-                    borderTop: "2px solid #ccc",
-                  }}
-                >
-                  TOTAL
-                </td>
-
-                <td
-                  style={{
-                    ...tdRight,
-                    fontWeight: 700,
-                    borderTop: "2px solid #ccc",
-                  }}
-                >
-                  {format(
-                    traceTransactions.reduce(
-                      (total: number, m: any) =>
-                        total + parse(m["NOMINAL"]),
-                      0
+                        <td style={tdRight}>
+                          {format(
+                            parse(
+                              d["Anggaran Tahunan"] ||
+                                d["Anggaran"]
+                            )
+                          )}
+                        </td>
+                      </tr>
                     )
                   )}
-                </td>
-              </tr>
-            </tbody>
-          </table>
+
+                  <tr>
+                    <td
+                      colSpan={2}
+                      style={{
+                        ...tdStyle,
+                        fontWeight: 700,
+                        borderTop: "2px solid #e5e7eb",
+                        textAlign: "left",
+                      }}
+                    >
+                      TOTAL
+                    </td>
+
+                    <td
+                      style={{
+                        ...tdRight,
+                        fontWeight: 700,
+                        borderTop: "2px solid #e5e7eb",
+                      }}
+                    >
+                      {format(
+                        budgetBreakdown.reduce(
+                          (total, d) =>
+                            total +
+                            parse(
+                              d["Anggaran Tahunan"] ||
+                                d["Anggaran"]
+                            ),
+                          0
+                        )
+                      )}
+                    </td>
+                  </tr>
+                </tbody>
+              </table>
+            </>
+          ) : (
+            <>
+              {/* ================================
+                  TRANSACTION BREAKDOWN UM / BEBAN
+                  ================================ */}
+
+              <table
+                style={{
+                  width: "100%",
+                  borderCollapse: "collapse",
+                }}
+              >
+                <thead>
+                  <tr>
+                    <th style={tdStyle}>Tanggal</th>
+                    <th style={tdStyle}>No. Urut Transaksi</th>
+                    <th style={tdStyle}>No Desi</th>
+                    <th style={tdStyle}>PIC</th>
+                    <th style={tdStyle}>Keterangan</th>
+                    <th style={tdStyle}>Kode Aktual</th>
+                    <th style={tdRight}>Nominal</th>
+                  </tr>
+                </thead>
+
+                <tbody>
+                  {traceTransactions.map(
+                    (m: any, index: number) => (
+                      <tr
+                        key={index}
+                        onClick={() =>
+                          setSelectedTransaction(m)
+                        }
+                        style={{
+                          cursor: "pointer",
+                        }}
+                      >
+                        <td style={tdStyle}>
+                          {m["TGL"] || "-"}
+                        </td>
+
+                        <td style={tdStyle}>
+                          {m["No Urut Transaksi"] || "-"}
+                        </td>
+
+                        <td style={tdStyle}>
+                          {m["NO DESI"] || "-"}
+                        </td>
+
+                        <td style={tdStyle}>
+                          {m["PIC"] || "-"}
+                        </td>
+
+                        <td style={tdStyle}>
+                          {m["KETERANGAN"] || "-"}
+                        </td>
+
+                        <td style={tdStyle}>
+                          {m["KODE AKTUAL"] || "-"}
+                        </td>
+
+                        <td style={tdRight}>
+                          {format(parse(m["NOMINAL"]))}
+                        </td>
+                      </tr>
+                    )
+                  )}
+
+                  <tr>
+                    <td
+                      colSpan={6}
+                      style={{
+                        ...tdStyle,
+                        fontWeight: 700,
+                        borderTop: "2px solid #e5e7eb",
+                      }}
+                    >
+                      TOTAL
+                    </td>
+
+                    <td
+                      style={{
+                        ...tdRight,
+                        fontWeight: 700,
+                        borderTop: "2px solid #e5e7eb",
+                      }}
+                    >
+                      {format(
+                        traceTransactions.reduce(
+                          (total, m) =>
+                            total + parse(m["NOMINAL"]),
+                          0
+                        )
+                      )}
+                    </td>
+                  </tr>
+                </tbody>
+              </table>
+            </>
+          )}
         </>
       ) : (
         <>
