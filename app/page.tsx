@@ -2673,8 +2673,8 @@ const stickyCol = (left: number, enabled: boolean = true): CSSProperties => {
                 <thead>
                   <tr>
                     <th style={tdStyle}>Tanggal</th>
-                    <th style={tdStyle}>No. Urut Transaksi</th>
-                    <th style={tdStyle}>No Desi</th>
+                    <th style={tdStyle}>NO. URUT TRANSAKSI</th>
+                    <th style={tdStyle}>NO DESI</th>
                     <th style={tdStyle}>PIC</th>
                     <th style={tdStyle}>Keterangan</th>
                     <th style={tdStyle}>Kode Aktual</th>
@@ -2699,7 +2699,7 @@ const stickyCol = (left: number, enabled: boolean = true): CSSProperties => {
                         </td>
 
                         <td style={tdStyle}>
-                          {m["No Urut Transaksi"] || "-"}
+                          {m["NO. URUT TRANSAKSI"] || "-"}
                         </td>
 
                         <td style={tdStyle}>
@@ -2831,7 +2831,7 @@ const stickyCol = (left: number, enabled: boolean = true): CSSProperties => {
             }}
           >
             <div>
-              <strong>No. Urut Transaksi</strong>
+              <strong>NO. URUT TRANSAKSI</strong>
               <div style={{ marginTop: "4px" }}>
                 {selectedTransaction["NO. URUT TRANSAKSI"] || "-"}
               </div>
