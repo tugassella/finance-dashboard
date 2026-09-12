@@ -85,8 +85,13 @@ export default function ExecutiveDashboard() {
   const [expandedSub, setExpandedSub] = useState<Record<string, boolean>>({});
   const [hoveredKpi, setHoveredKpi] = useState<number | null>(null);
   const [monitoringUM, setMonitoringUM] = useState<any[]>([]);
-  // const dataQuery = data?.data?.dataQuery || [];
   const [dataQuery, setDataQuery] = useState<any[]>([]);
+  const [mutasi, setMutasi] = useState<any[]>([]);
+  const [traceTransactions, setTraceTransactions] = useState<any[]>([]);
+  const [traceOpen, setTraceOpen] = useState(false);
+  const [traceAccount, setTraceAccount] = useState("");
+  const [traceType, setTraceType] = useState("");
+  const [selectedTransaction, setSelectedTransaction] = useState<any | null>(null);
   const cleanMonitoringUM = monitoringUM.filter((row: any) => {
   const noDesi = String(row["No Desi"] || "").trim();
 
@@ -124,20 +129,21 @@ useEffect(() => {
   }
 
   fetch("/api/sheets")
-    .then((res) => res.json())
-    .then((result) => {
-      console.log("DATA QUERY DITERIMA:", result?.dataQuery?.length);
-      console.log(
-        "BARIS TERAKHIR:",
-        result?.dataQuery?.[result?.dataQuery?.length - 1]
-      );
+  .then((res) => res.json())
+  .then((result) => {
+    console.log("DATA QUERY DITERIMA:", result?.dataQuery?.length);
+    console.log(
+      "BARIS TERAKHIR:",
+      result?.dataQuery?.[result?.dataQuery?.length - 1]
+    );
 
-      setData(result?.dataQuery ?? []);
-      setDataQuery(result?.dataQuery ?? []);
-      setMonitoringUM(result?.monitoringUM ?? []);
-      setLoading(false);
-    })
-    .catch(() => setLoading(false));
+    setData(result?.dataQuery ?? []);
+    setDataQuery(result?.dataQuery ?? []);
+    setMonitoringUM(result?.monitoringUM ?? []);
+    setMutasi(result?.mutasi ?? []);
+    setLoading(false);
+  })
+  .catch(() => setLoading(false));
 }, []);
   const safeData = Array.isArray(data) ? data : [];
   const [printKey, setPrintKey] = useState(0);
@@ -175,6 +181,135 @@ useEffect(() => {
     const clean = String(v).replace(/\./g, "").replace(/,/g, ".");
     return Number(clean) || 0;
   };
+
+  const normalizeKode = (value: any) => {
+  return String(value ?? "")
+    .trim()
+    .toLowerCase();
+};
+
+  const getMutasiByKodeBudget = (kodeBudget: any) => {
+    const target = normalizeKode(kodeBudget);
+
+    return mutasi.filter((m: any) => {
+      return normalizeKode(m["KODE ALOKASI ANGGARAN"]) === target;
+    });
+  };
+
+  const getKodeBudget = (akunBudget: any) => {
+  return String(akunBudget ?? "")
+    .trim()
+    .split(/\s+/)[0];
+};
+
+  const openTrace = (akunBudget: any, jenisTransaksi: string) => {
+  const kodeBudget = getKodeBudget(akunBudget);
+
+  let transactions: any[] = [];
+
+  // ================================
+  // FILTER PERIODE MUTASI
+  // ================================
+  const isInSelectedPeriod = (m: any) => {
+    const tgl = String(m["TGL"] ?? "").trim();
+
+    // Format TGL: DD/MM/YYYY
+    const parts = tgl.split("/");
+
+    if (parts.length !== 3) {
+      return false;
+    }
+
+    const day = Number(parts[0]);
+    const month = Number(parts[1]);
+    const year = Number(parts[2]);
+
+    if (!day || !month || !year) {
+      return false;
+    }
+
+    // Filter Tahun
+    if (
+      tahun !== "All" &&
+      String(year) !== String(tahun)
+    ) {
+      return false;
+    }
+
+    // Filter Bulan
+    if (
+      selectedBulan.length > 0 &&
+      !selectedBulan.includes(String(month))
+    ) {
+      return false;
+    }
+
+    return true;
+  };
+
+  // ================================
+  // TRACING UANG MUKA OUTSTANDING
+  // ================================
+if (normalizeKode(jenisTransaksi) === "uang muka") {
+  transactions = mutasi.filter((m: any) => {
+    // Harus berada di periode yang dipilih
+    if (!isInSelectedPeriod(m)) {
+      return false;
+    }
+
+    // Harus berstatus Uang Muka
+    if (normalizeKode(m["KODE"]) !== "uang muka") {
+      return false;
+    }
+
+    // Harus sesuai Kode Alokasi Anggaran
+    if (
+      normalizeKode(m["KODE ALOKASI ANGGARAN"]) !==
+      normalizeKode(kodeBudget)
+    ) {
+      return false;
+    }
+
+    const noDesi = String(
+      m["NO DESI"] ?? ""
+    ).trim();
+
+    // Cek apakah NO DESI + Kode Alokasi
+    // sudah memiliki PJUM
+    const hasPJUM = mutasi.some(
+      (p: any) =>
+        String(p["NO DESI"] ?? "").trim() === noDesi &&
+        normalizeKode(p["KODE ALOKASI ANGGARAN"]) ===
+          normalizeKode(m["KODE ALOKASI ANGGARAN"]) &&
+        normalizeKode(p["KODE"]) === "pjum"
+    );
+
+    // Hanya tampilkan UM yang benar-benar
+    // belum memiliki PJUM
+    return !hasPJUM;
+  });
+}
+
+    // ================================
+  // TRACING BEBAN
+  // ================================
+  else {
+    transactions = getMutasiByKodeBudget(kodeBudget).filter(
+      (m: any) =>
+        // Harus berada di periode yang dipilih
+        isInSelectedPeriod(m) &&
+
+        // Secara aktual masuk ke Beban
+        normalizeKode(m["KODE AKTUAL"]) ===
+          normalizeKode("5. Beban")
+    );
+  }
+
+  setTraceTransactions(transactions);
+  setTraceAccount(akunBudget);
+  setTraceType(jenisTransaksi);
+  setTraceOpen(true);
+};
 
   const format = (n: number) => "Rp " + Math.floor(n).toLocaleString("id-ID");
   const getSerapan = (t: number, a: number) => (a > 0 ? ((t / a) * 100).toFixed(1) + "%" : "0.0%");
@@ -2186,15 +2321,39 @@ const stickyCol = (left: number, enabled: boolean = true): CSSProperties => {
                                       ▸ {akun}
                                     </td>
                                     <td style={tdRight}>{format(a.a)}</td>
-                                    <td style={tdRight}>{format(a.um)}</td>
-                                    <td style={tdRight}>{format(a.b)}</td>
+                                    <td
+                                      style={{
+                                        ...tdRight,
+                                        cursor: "pointer",
+                                        color: THEME.textSoft,
+                                        fontWeight: 600,
+                                      }}
+                                      onClick={() => openTrace(akun, "Uang Muka")}
+                                    >
+                                      {format(a.um)}
+                                    </td>
+
+                                    <td
+                                        style={{
+                                          ...tdRight,
+                                          cursor: "pointer",
+                                          color: THEME.textSoft,
+                                          fontWeight: 600,
+                                        }}
+                                        onClick={() => openTrace(akun, "Beban")}
+                                      >
+                                        {format(a.b)}
+                                      </td>
                                     <td style={tdRight}>{format(a.t)}</td>
                                     <td style={tdRight}>{format(a.a - a.t)}</td>
                                     <td style={tdCenter}>{serapanAkun.toFixed(1)}%</td>
-                                  </tr>
-                                );
-                              })}
-                          </React.Fragment>
+
+                                    </tr>
+                                    );
+                                    })}
+
+                                    
+                                    </React.Fragment>
                         );
                       })}
                     </React.Fragment>
@@ -2231,8 +2390,385 @@ const stickyCol = (left: number, enabled: boolean = true): CSSProperties => {
         </tr>
       </tbody>
     </table>
+    
+    {traceOpen && traceTransactions.length > 0 && (
+  <div
+    style={{
+      position: "fixed",
+      inset: 0,
+      background: "rgba(0, 0, 0, 0.45)",
+      display: "flex",
+      alignItems: "center",
+      justifyContent: "center",
+      zIndex: 9999,
+      padding: "24px",
+    }}
+  >
+    <div
+      style={{
+        background: "#fff",
+        width: "95%",
+        maxWidth: "1400px",
+        maxHeight: "85vh",
+        overflow: "auto",
+        borderRadius: "12px",
+        padding: "24px",
+        boxShadow: "0 20px 50px rgba(0,0,0,0.25)",
+        position: "relative",
+      }}
+    >
+      {/* CLOSE BUTTON */}
+      <button
+        onClick={() => {
+          setTraceOpen(false);
+          setSelectedTransaction(null);
+        }}
+        style={{
+          position: "absolute",
+          top: "12px",
+          right: "16px",
+          border: "none",
+          background: "transparent",
+          fontSize: "24px",
+          cursor: "pointer",
+          color: "#666",
+          lineHeight: 1,
+        }}
+      >
+        ×
+      </button>
+
+      {!selectedTransaction ? (
+        <>
+          {/* ================================
+              TRANSACTION BREAKDOWN
+              ================================ */}
+
+          <div
+            style={{
+              marginBottom: "20px",
+              paddingBottom: "14px",
+              borderBottom: "1px solid #e5e7eb",
+            }}
+          >
+            <h3
+              style={{
+                margin: 0,
+                fontSize: "18px",
+                fontWeight: 700,
+              }}
+            >
+              Transaction Breakdown
+            </h3>
+
+            <div
+              style={{
+                marginTop: "8px",
+                fontSize: "13px",
+                color: "#666",
+              }}
+            >
+              {traceType} —{" "}
+              <span
+                style={{
+                  fontWeight: 600,
+                  color: "#263238",
+                }}
+              >
+                {traceAccount}
+              </span>
+            </div>
+          </div>
+
+          <table
+            style={{
+              width: "100%",
+              borderCollapse: "collapse",
+            }}
+          >
+            <thead>
+              <tr>
+                <th style={tdStyle}>Tanggal</th>
+                <th style={tdStyle}>No. Urut Transaksi</th>
+                <th style={tdStyle}>No Desi</th>
+                <th style={tdStyle}>PIC</th>
+                <th style={tdStyle}>Keterangan</th>
+                <th style={tdStyle}>Kode Aktual</th>
+                <th style={tdRight}>Nominal</th>
+              </tr>
+            </thead>
+
+            <tbody>
+              {traceTransactions.map((m: any, index: number) => (
+                <tr
+                  key={index}
+                  onClick={() => setSelectedTransaction(m)}
+                  style={{
+                    cursor: "pointer",
+                  }}
+                >
+                  <td style={tdStyle}>
+                    {m["TGL"] || "-"}
+                  </td>
+
+                  <td style={tdStyle}>
+                    {m["NO. URUT TRANSAKSI"] || "-"}
+                  </td>
+
+                  <td style={tdStyle}>
+                    {m["NO DESI"] || "-"}
+                  </td>
+
+                  <td style={tdStyle}>
+                    {m["PIC"] || "-"}
+                  </td>
+
+                  <td style={tdStyle}>
+                    {m["KETERANGAN"] || "-"}
+                  </td>
+
+                  <td style={tdStyle}>
+                    {m["KODE AKTUAL"] || "-"}
+                  </td>
+
+                  <td style={tdRight}>
+                    {format(parse(m["NOMINAL"]))}
+                  </td>
+                </tr>
+              ))}
+
+              {/* TOTAL TRANSACTION BREAKDOWN */}
+              <tr>
+                <td
+                  colSpan={6}
+                  style={{
+                    ...tdStyle,
+                    fontWeight: 700,
+                    textAlign: "right",
+                    borderTop: "2px solid #ccc",
+                  }}
+                >
+                  TOTAL
+                </td>
+
+                <td
+                  style={{
+                    ...tdRight,
+                    fontWeight: 700,
+                    borderTop: "2px solid #ccc",
+                  }}
+                >
+                  {format(
+                    traceTransactions.reduce(
+                      (total: number, m: any) =>
+                        total + parse(m["NOMINAL"]),
+                      0
+                    )
+                  )}
+                </td>
+              </tr>
+            </tbody>
+          </table>
+        </>
+      ) : (
+        <>
+          {/* ================================
+              TRANSACTION DETAIL
+              ================================ */}
+
+          <div
+            style={{
+              marginBottom: "20px",
+              paddingBottom: "14px",
+              borderBottom: "1px solid #e5e7eb",
+            }}
+          >
+            <div
+              style={{
+                display: "flex",
+                alignItems: "center",
+                gap: "12px",
+              }}
+            >
+              <button
+                onClick={() => setSelectedTransaction(null)}
+                style={{
+                  border: "none",
+                  background: "transparent",
+                  cursor: "pointer",
+                  fontSize: "14px",
+                  fontWeight: 600,
+                  padding: 0,
+                }}
+              >
+                ← Kembali
+              </button>
+
+              <h3
+                style={{
+                  margin: 0,
+                  fontSize: "18px",
+                  fontWeight: 700,
+                }}
+              >
+                Transaction Detail
+              </h3>
+            </div>
+
+            <div
+              style={{
+                marginTop: "8px",
+                fontSize: "13px",
+                color: "#666",
+              }}
+            >
+              {traceType} —{" "}
+              <span
+                style={{
+                  fontWeight: 600,
+                  color: "#263238",
+                }}
+              >
+                {traceAccount}
+              </span>
+            </div>
+          </div>
+
+          <div
+            style={{
+              display: "grid",
+              gridTemplateColumns: "repeat(2, minmax(0, 1fr))",
+              gap: "16px 24px",
+              fontSize: "13px",
+            }}
+          >
+            <div>
+              <strong>No. Urut Transaksi</strong>
+              <div style={{ marginTop: "4px" }}>
+                {selectedTransaction["NO. URUT TRANSAKSI"] || "-"}
+              </div>
+            </div>
+
+            <div>
+              <strong>No Desi</strong>
+              <div style={{ marginTop: "4px" }}>
+                {selectedTransaction["NO DESI"] || "-"}
+              </div>
+            </div>
+
+            <div>
+              <strong>Tanggal</strong>
+              <div style={{ marginTop: "4px" }}>
+                {selectedTransaction["TGL"] || "-"}
+              </div>
+            </div>
+
+            <div>
+              <strong>Buku</strong>
+              <div style={{ marginTop: "4px" }}>
+                {selectedTransaction["BUKU"] || "-"}
+              </div>
+            </div>
+
+            <div>
+              <strong>PIC</strong>
+              <div style={{ marginTop: "4px" }}>
+                {selectedTransaction["PIC"] || "-"}
+              </div>
+            </div>
+
+            <div>
+              <strong>Nama Pelaksana</strong>
+              <div style={{ marginTop: "4px" }}>
+                {selectedTransaction["NAMA PELAKSANA"] || "-"}
+              </div>
+            </div>
+
+            <div style={{ gridColumn: "1 / -1" }}>
+              <strong>Keterangan</strong>
+              <div style={{ marginTop: "4px" }}>
+                {selectedTransaction["KETERANGAN"] || "-"}
+              </div>
+            </div>
+
+            <div>
+              <strong>Kode</strong>
+              <div style={{ marginTop: "4px" }}>
+                {selectedTransaction["KODE"] || "-"}
+              </div>
+            </div>
+
+            <div>
+              <strong>Kode Aktual</strong>
+              <div style={{ marginTop: "4px" }}>
+                {selectedTransaction["KODE AKTUAL"] || "-"}
+              </div>
+            </div>
+
+            <div>
+              <strong>Kode Anggaran</strong>
+              <div style={{ marginTop: "4px" }}>
+                {selectedTransaction["KODE ANGGARAN"] || "-"}
+              </div>
+            </div>
+
+            <div>
+              <strong>Kode Alokasi Anggaran</strong>
+              <div style={{ marginTop: "4px" }}>
+                {selectedTransaction["KODE ALOKASI ANGGARAN"] || "-"}
+              </div>
+            </div>
+
+            <div>
+              <strong>Nama Alokasi Anggaran</strong>
+              <div style={{ marginTop: "4px" }}>
+                {selectedTransaction["NAMA ALOKASI ANGGARAN"] || "-"}
+              </div>
+            </div>
+
+            <div>
+              <strong>Nama Sumber Anggaran</strong>
+              <div style={{ marginTop: "4px" }}>
+                {selectedTransaction["NAMA SUMBER ANGGARAN"] || "-"}
+              </div>
+            </div>
+
+            <div>
+              <strong>Debit</strong>
+              <div style={{ marginTop: "4px" }}>
+                {format(parse(selectedTransaction["DEBIT"]))}
+              </div>
+            </div>
+
+            <div>
+              <strong>Kredit</strong>
+              <div style={{ marginTop: "4px" }}>
+                {format(parse(selectedTransaction["KREDIT"]))}
+              </div>
+            </div>
+
+            <div>
+              <strong>Nominal</strong>
+              <div style={{ marginTop: "4px", fontWeight: 700 }}>
+                {format(parse(selectedTransaction["NOMINAL"]))}
+              </div>
+            </div>
+
+            <div>
+              <strong>Saldo</strong>
+              <div style={{ marginTop: "4px" }}>
+                {format(parse(selectedTransaction["SALDO"]))}
+              </div>
+            </div>
+          </div>
+        </>
+      )}
+    </div>
   </div>
 )}
+  </div>
+)}
+
 
 {activeTab === "reportDD" && (
   <div className="report-dd-wrapper" style={{ width: "100%", padding: "10px" }}>

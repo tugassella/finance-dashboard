@@ -14,18 +14,30 @@ export async function GET() {
     const auth = new google.auth.JWT({
       email: process.env.GOOGLE_CLIENT_EMAIL,
       key: privateKey,
-      scopes: ["https://www.googleapis.com/auth/spreadsheets.readonly"],
+      scopes: [
+        "https://www.googleapis.com/auth/spreadsheets.readonly",
+      ],
     });
 
     const sheets = google.sheets({ version: "v4", auth });
 
     const response = await sheets.spreadsheets.values.batchGet({
       spreadsheetId: process.env.GOOGLE_SHEET_ID,
-      ranges: ["data_query!A:Z", "monitoring_um!A:J"],
+      ranges: [
+        "data_query!A:Z",
+        "monitoring_um!A:J",
+        "mutasi!A:Z",
+      ],
     });
 
-    const dataQueryRows = response.data.valueRanges?.[0]?.values || [];
-    const monitoringUMRows = response.data.valueRanges?.[1]?.values || [];
+    const dataQueryRows =
+      response.data.valueRanges?.[0]?.values || [];
+
+    const monitoringUMRows =
+      response.data.valueRanges?.[1]?.values || [];
+
+    const mutasiRows =
+      response.data.valueRanges?.[2]?.values || [];
 
     function sheetToJson(rows: any[][]) {
       if (!rows.length) return [];
@@ -42,10 +54,12 @@ export async function GET() {
 
     const dataQuery = sheetToJson(dataQueryRows);
     const monitoringUM = sheetToJson(monitoringUMRows);
+    const mutasi = sheetToJson(mutasiRows);
 
     return Response.json({
       dataQuery,
       monitoringUM,
+      mutasi,
     });
   } catch (error: any) {
     console.error("API ERROR:", error);
