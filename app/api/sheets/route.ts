@@ -26,7 +26,7 @@ export async function GET() {
       ranges: [
         "data_query!A:Z",
         "monitoring_um!A:J",
-        "mutasi!A:Z",
+        "mutasi!A:BD",
       ],
     });
 

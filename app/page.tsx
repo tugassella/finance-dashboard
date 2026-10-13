@@ -202,7 +202,8 @@ useEffect(() => {
     .trim()
     .split(/\s+/)[0];
 };
-  const openBudgetBreakdown = (akunBudget: any) => {
+  
+const openBudgetBreakdown = (akunBudget: any) => {
   const targetAkun = normalizeKode(akunBudget);
 
   const breakdown = dataQuery.filter((d: any) => {
@@ -232,9 +233,7 @@ useEffect(() => {
     // Filter Jenis Dana
     if (
       jenisDana.length > 0 &&
-      !jenisDana.includes(
-        cleanText(d["Jenis Dana"])
-      )
+      !jenisDana.includes(cleanText(d["Jenis Dana"]))
     ) {
       return false;
     }
@@ -242,11 +241,41 @@ useEffect(() => {
     return true;
   });
 
-  setBudgetBreakdown(breakdown);
+  // Tambahkan Catatan dari sheet mutasi
+  const breakdownWithNotes = breakdown.map((d: any) => {
+    const akun = normalizeKode(d["Akun Budget"]);
+    const tahunAnggaran = String(d["Tahun"] ?? "").trim();
+    const bulanAnggaran = String(d["Bulan"] ?? "").trim();
+
+    const matchingMutasi = mutasi.filter((m: any) => {
+      return (
+        normalizeKode(m["Akun Budget"]) === akun &&
+        String(m["Tahun"] ?? "").trim() === tahunAnggaran &&
+        String(m["Bulan"] ?? "").trim() === bulanAnggaran &&
+        String(m["Buku"] ?? "").trim().toLowerCase() === "anggaran"
+      );
+    });
+
+    const catatan = [
+      ...new Set(
+        matchingMutasi
+          .map((m: any) => String(m["CATATAN"] ?? "").trim())
+          .filter(Boolean)
+      ),
+    ].join("; ");
+
+    return {
+      ...d,
+      Catatan: catatan,
+    };
+  });
+
+  setBudgetBreakdown(breakdownWithNotes);
   setTraceAccount(akunBudget);
   setTraceType("Anggaran");
   setTraceOpen(true);
 };
+
 
   const openTrace = (akunBudget: any, jenisTransaksi: string) => {
   const kodeBudget = getKodeBudget(akunBudget);
@@ -2543,9 +2572,11 @@ const stickyCol = (left: number, enabled: boolean = true): CSSProperties => {
 
           {traceType === "Anggaran" ? (
             <>
-              {/* ================================
+              
+              {/* 
                   ANGGARAN BREAKDOWN
-                  ================================ */}
+                  ================================
+              */}
 
               <table
                 style={{
@@ -2583,6 +2614,16 @@ const stickyCol = (left: number, enabled: boolean = true): CSSProperties => {
                     >
                       Anggaran
                     </th>
+
+                    <th
+                      style={{
+                        ...tdStyle,
+                        width: "220px",
+                        textAlign: "left",
+                      }}
+                    >
+                      Catatan
+                    </th>
                   </tr>
                 </thead>
 
@@ -2617,6 +2658,17 @@ const stickyCol = (left: number, enabled: boolean = true): CSSProperties => {
                                 d["Anggaran"]
                             )
                           )}
+                        </td>
+
+                        <td
+                          style={{
+                            ...tdStyle,
+                            textAlign: "left",
+                            whiteSpace: "normal",
+                            wordBreak: "break-word",
+                          }}
+                        >
+                          {d["Catatan"] || "-"}
                         </td>
                       </tr>
                     )
@@ -2654,6 +2706,13 @@ const stickyCol = (left: number, enabled: boolean = true): CSSProperties => {
                         )
                       )}
                     </td>
+
+                    <td
+                      style={{
+                        ...tdStyle,
+                        borderTop: "2px solid #e5e7eb",
+                      }}
+                    />
                   </tr>
                 </tbody>
               </table>
